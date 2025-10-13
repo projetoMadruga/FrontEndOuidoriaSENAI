@@ -5,10 +5,8 @@ import SenaiLogo from '../../assets/imagens/logosenai.png';
 import ModalGerenciar from '../../Components/ModalGerenciar';
 import './Admin.css';
 
-// Usando a convenção de desestruturação para createElement
 const { createElement: e } = React;
 
-// --- Função de Normalização (Utils) ---
 const normalizeString = (str) => {
     return String(str || '')
         .normalize('NFD') 
@@ -16,9 +14,7 @@ const normalizeString = (str) => {
         .toLowerCase()
         .trim();
 };
-// ------------------------------
 
-// --- Serviço de Manifestações (Service) ---
 const ManifestacaoService = {
     getAllManifestacoes: () => {
         try {
@@ -26,7 +22,6 @@ const ManifestacaoService = {
             if (data) {
                 let manifestacoes = JSON.parse(data) || [];
                 
-                // Mapeia para garantir que todos tenham um ID único, usando o índice como fallback
                 return manifestacoes.map((m, index) => ({
                     id: m.id || index + 1,
                     ...m
@@ -39,14 +34,11 @@ const ManifestacaoService = {
         }
     },
     updateManifestacoes: (manifestacoes) => {
-        // Remove a propriedade 'id' antes de salvar
         const manifestacoesToSave = manifestacoes.map(({ id, ...rest }) => rest);
         localStorage.setItem('manifestacoes', JSON.stringify(manifestacoesToSave));
     }
 };
-// ------------------------------------------
 
-// --- Componente AdminHeader em JS Puro (Mantido) ---
 const AdminHeader = ({ navigate, SenaiLogo }) => {
     return e(
         'div',
@@ -90,7 +82,6 @@ const AdminHeader = ({ navigate, SenaiLogo }) => {
         ]
     );
 };
-// ------------------------------------------
 
 
 function Admin() {
@@ -142,7 +133,6 @@ function Admin() {
 
     const gerenciarManifestacao = (id) => {
         const manifestacao = manifestacoes.find(m => m.id === id);
-        // Garante uma nova referência para o Modal
         setManifestacaoSelecionada({...manifestacao});
     };
 
@@ -175,7 +165,6 @@ function Admin() {
 
     const tiposFiltro = ['Todos', 'Denúncia', 'Sugestão', 'Elogio', 'Reclamação'];
 
-    // --- Renderização dos Botões de Filtro ---
     const botoesFiltro = tiposFiltro.map((tipo) =>
         e(
             'button',
@@ -188,7 +177,6 @@ function Admin() {
         )
     );
 
-    // --- Renderização do Corpo da Tabela ---
     const corpoTabela = manifestacoesFiltradas.length === 0
         ? e(
             'tr', 
@@ -203,7 +191,6 @@ function Admin() {
                     e('td', null, m.tipo),
                     e('td', null, m.setor || 'Geral'),
                     e('td', null, m.contato),
-                    // 🚀 MUDANÇA AQUI: Formata a data e hora para o padrão local (ex: DD/MM/AAAA HH:MM:SS)
                     e('td', null, m.dataCriacao ? new Date(m.dataCriacao).toLocaleString('pt-BR') : 'N/A'),
                     e(
                         'td',
@@ -242,7 +229,6 @@ function Admin() {
             )
         );
 
-    // --- Renderização Final do Componente ---
     return e(
         'div',
         { className: 'admin-container' },
@@ -255,7 +241,6 @@ function Admin() {
                 'div',
                 { key: 'main-content-wrapper', className: 'admin-main-content-wrapper' },
                 [
-                    // Cartões de Resumo (Métricas)
                     e(
                         'div',
                         { key: 'cards', className: 'summary-cards' },
@@ -275,7 +260,6 @@ function Admin() {
                         )
                     ),
 
-                    // Tabela e Filtros
                     e(
                         'div',
                         { key: 'table-and-title-wrapper', className: 'table-and-title-wrapper' },
@@ -320,7 +304,6 @@ function Admin() {
 
             e(Footer, { key: 'footer' }),
 
-            // Modal de Gerenciamento
             manifestacaoSelecionada && e(ModalGerenciar, {
                 key: 'modal-gerenciar',
                 manifestacao: manifestacaoSelecionada,

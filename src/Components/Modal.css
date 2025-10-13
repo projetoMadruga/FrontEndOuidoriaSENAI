@@ -162,7 +162,7 @@
   cursor: pointer;
 }
 
-/* Ícone de seta */
+
 .select-wrapper::after {
   content: "";
   position: absolute;
@@ -178,12 +178,69 @@
   transition: transform 0.3s ease;
 }
 
-/* Gira para cima ao abrir */
+
 .select-wrapper.open::after {
   transform: translateY(-50%) rotate(180deg);
 }
 
-/* Placeholder */
+
 .select-area:invalid {
   color: #aaa;
+}
+
+
+
+.mensagem-sucesso {
+
+    color: white; 
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.4;
+    
+   
+    margin: 0; 
+    
+  
+    padding: 10px 15px; 
+    
+   
+    display: block; 
+}
+
+
+.mensagem-sucesso p {
+    margin: 0;
+    padding: 0;
+}
+
+
+.botoes-curso {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 10px; 
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.botoes-curso .curso-btn {
+    flex-grow: 1; 
+    min-width: 120px; 
+    background-color: #fff;
+    color: #e30613;
+    border: 2px solid #e30613; 
+    padding: 10px 15px;
+    border-radius: 20px; 
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none; 
+}
+
+.botoes-curso .curso-btn:hover,
+.botoes-curso .curso-btn:focus {
+    background-color: #e30613; 
+    color: #fff; 
+    box-shadow: 0 4px 8px rgba(227, 6, 19, 0.3); 
+    transform: translateY(-1px); 
 }

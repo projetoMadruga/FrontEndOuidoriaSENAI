@@ -1,9 +1,3 @@
-/*
- * Arquivo: ModalGerenciar.css
- * Estilos para o Modal de Gerenciamento de Manifestações
- */
-
-/* Fundo Escuro (Overlay) */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -14,10 +8,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Garante que fique acima de todo o conteúdo */
+    z-index: 1000; 
 }
 
-/* Conteúdo do Modal */
+
 .modal-content {
     background-color: white;
     padding: 30px;
@@ -26,11 +20,11 @@
     max-width: 600px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     position: relative;
-    max-height: 80vh; /* Limita a altura para modais maiores */
-    overflow-y: auto; /* Permite rolagem interna */
+    max-height: 80vh; 
+    overflow-y: auto;
 }
 
-/* Cabeçalho do Modal */
+
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -59,7 +53,7 @@
     color: #e60000;
 }
 
-/* Corpo do Modal */
+
 .modal-body p {
     margin-bottom: 10px;
     line-height: 1.5;
@@ -76,7 +70,7 @@
     border-top: 1px solid #eee;
 }
 
-/* Formulário de Resposta do Admin */
+
 .modal-body h3 {
     font-size: 1.2rem;
     color: #e60000;
@@ -96,11 +90,11 @@
     margin-top: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box; /* Garante que padding não estoure a largura */
+    box-sizing: border-box; 
     font-family: inherit;
 }
 
-/* Botões de Ação */
+
 .modal-actions {
     display: flex;
     justify-content: flex-end;
@@ -135,7 +129,7 @@
     background-color: #bbb;
 }
 
-/* Estilos de Status (Replicados do Admin.css, mas essenciais para o modal) */
+
 .status-label {
     padding: 4px 8px;
     border-radius: 12px;
@@ -144,7 +138,7 @@
     display: inline-block;
     margin-left: 5px;
 }
-/* Cores do status: Certifique-se de que essas classes CSS batem com as strings do seu código */
+
 .status-label.pendente {
     background-color: #fdf3c7;
     color: #8a6d3b;

@@ -1,4 +1,3 @@
-/* Container Geral e Linha Vermelha */
 .aluno-container {
     font-family: Arial, sans-serif;
     background-color: #f7f7f7;
@@ -11,10 +10,9 @@
     width: 100%;
     height: 3px;
     background-color: #b60000;
-     margin-top: -3px; 
 }
 
-/* --- Cabeçalho (Área Branca Superior) --- */
+
 .aluno-header-full {
     background: #fff;
     display: flex;
@@ -33,8 +31,8 @@
 }
 
 .senai-logo-img {
-    height: 15px;
-    width: auto;
+    height: 30px !important; 
+    width: auto !important;
     object-fit: contain;
 }
 
@@ -66,7 +64,7 @@
 }
 
 
-/* --- Conteúdo Principal e Centralização --- */
+
 .aluno-main-content-wrapper {
     flex: 1;
     display: flex;
@@ -78,11 +76,11 @@
     margin: 0 auto;
 }
 
-/* --- Cards de Resumo (CORREÇÃO para layout da imagem: distribuídos uniformemente) --- */
+
 .aluno-summary-cards {
     display: flex;
-    justify-content: space-between; /* Distribui o espaço entre os 3 cards */
-    gap: 20px; /* Espaço adequado entre os cards */
+    justify-content: space-between;
+    gap: 20px;
     width: 100%;
     margin-bottom: 30px;
 }
@@ -91,10 +89,10 @@
     background: #fff;
     padding: 10px 25px;
     border-radius: 8px;
-    /* Permite que o flex distribua a largura igualmente */
-    flex: 1 1 0; 
-    /* Remove as restrições de largura que estavam quebrando o layout */
-    max-width: none; 
+
+    flex: 1 1 0;
+
+    max-width: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: 90px;
     box-sizing: border-box;
@@ -115,7 +113,7 @@
     margin-top: 5px;
 }
 
-/* --- Minhas Manifestações (Container branco) --- */
+
 .minhas-manifestacoes-section-wrapper {
     width: 100%;
 }
@@ -141,7 +139,7 @@
     margin-bottom: 20px;
 }
 
-/* --- Card de Manifestação (Lista de Itens) --- */
+
 .manifestacoes-list {
     display: flex;
     flex-direction: column;
@@ -157,7 +155,7 @@
     position: relative;
 }
 
-/* Topo do Card (Tipo, Data, Status) */
+
 .manifestacao-card-info {
     display: block;
     margin-bottom: 10px;
@@ -171,15 +169,14 @@
     margin-bottom: 15px;
 }
 
-/* CORREÇÃO: Estilo do Tipo como botão vermelho sólido (como na imagem) */
+
 .manifestacao-tipo {
     font-size: 14px;
     font-weight: 600;
     background-color: #b60000;
     color: #fff;
-    padding: 3px 8px; 
+    padding: 3px 8px;
     border-radius: 4px;
-    /* Remove as regras de cor/borda do antigo estilo de texto */
     border-right: none;
 }
 
@@ -189,7 +186,7 @@
     font-weight: 400;
 }
 
-/* Status: Posição superior direita absoluta */
+
 .manifestacao-status {
     position: absolute;
     top: 20px;
@@ -199,8 +196,7 @@
     font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
-    /* CORREÇÃO: Capitalize para Finalizada/Em Análise, como na imagem */
-    text-transform: capitalize; 
+    text-transform: capitalize;
 }
 .manifestacao-status.em-análise {
     background-color: #ffc107;
@@ -216,9 +212,9 @@
     color: #444;
     margin: 5px 0 15px;
     font-weight: 500;
+    word-break: break-all;
 }
 
-/* Resposta da Ouvidoria (CORREÇÃO: Fundo Verde Claro da imagem) */
 .manifestacao-resposta {
     background-color: #f7fff7;
     padding: 15px;
@@ -240,24 +236,23 @@
     margin: 0;
 }
 
-/* CORREÇÃO: Botão Ver Detalhes (Botão com borda, como na imagem) */
 .btn-ver-detalhes {
     background-color: transparent;
-    border: 1px solid #ccc; /* Borda cinza clara */
+    border: 1px solid #ccc;
     color: #333;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     padding: 6px 12px;
     border-radius: 4px;
-    text-decoration: none; /* Remove sublinhado */
+    text-decoration: none;
     transition: background-color 0.2s;
 }
 .btn-ver-detalhes:hover {
     background-color: #f5f5f5;
 }
 
-/* --- Modal de Detalhes --- */
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -338,17 +333,17 @@
 }
 
 
-/* --- Responsividade --- */
+
 @media (max-width: 768px) {
     .aluno-header-full {
         padding: 15px 15px;
     }
     .aluno-summary-cards {
         flex-direction: column;
-        gap: 10px; /* Reduz o gap em telas menores */
+        gap: 10px;
     }
     .aluno-summary-cards .aluno-card {
-        width: 100%; /* Ocupa a largura total em telas pequenas */
+        width: 100%;
         max-width: 100%;
         height: auto;
     }

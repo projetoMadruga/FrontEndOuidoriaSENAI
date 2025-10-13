@@ -4,11 +4,13 @@ import "./Modal.css";
 import logosenai from "../assets/imagens/logosenai.png";
 import boneco from "../assets/imagens/boneco.png";
 import cadeado from "../assets/imagens/cadeado.png";
-import { login as authLogin } from "../services/auth";
+import { api } from "../services/api";
 
 function ModalLogin({ isOpen, onClose, onCadastro, onEsqueciSenha }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   if (!isOpen) return null;
@@ -25,19 +27,47 @@ function ModalLogin({ isOpen, onClose, onCadastro, onEsqueciSenha }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+
     try {
-      await authLogin({ email, senha });
+      // Chama a API de autenticação do back-end
+      const response = await api.post("/login/autenticar", {
+        emailEducacional: email,
+        senha: senha
+      });
+
+      // Armazena os tokens JWT
+      if (response.token) {
+        localStorage.setItem("authToken", response.token);
+      }
+      if (response.refreshToken) {
+        localStorage.setItem("refreshToken", response.refreshToken);
+      }
+
+      // Armazena dados do usuário
+      localStorage.setItem("usuarioLogado", JSON.stringify({ email }));
+
+      // Redireciona baseado no email
       redirecionarPorEmail(email);
+      
+      // Limpa o formulário
       setEmail("");
       setSenha("");
       onClose();
     } catch (err) {
-      try {
-        const body = await err.json?.();
-        alert(body?.message || "Usuário ou senha inválidos.");
-      } catch {
-        alert("Usuário ou senha inválidos.");
+      console.error("Erro na autenticação:", err);
+      
+      // Trata diferentes tipos de erro
+      if (err.status === 401) {
+        setError("Email ou senha inválidos.");
+      } else if (err.status === 400) {
+        setError("Dados inválidos. Verifique os campos.");
+      } else {
+        setError("Erro ao conectar com o servidor. Tente novamente.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,6 +81,7 @@ function ModalLogin({ isOpen, onClose, onCadastro, onEsqueciSenha }) {
       React.createElement("img", { src: logosenai, alt: "Logo SENAI", className: "logo-senai-modal" }),
       React.createElement("div", { className: "linha-vermelha" }),
       React.createElement("h2", { className: "titulo-principal" }, "Login"),
+      error && React.createElement("div", { className: "error-message", style: { color: "red", marginBottom: "10px", textAlign: "center" } }, error),
       React.createElement(
         "form",
         { onSubmit: handleSubmit },
@@ -78,7 +109,7 @@ function ModalLogin({ isOpen, onClose, onCadastro, onEsqueciSenha }) {
             required: true,
           })
         ),
-        React.createElement("button", { type: "submit", className: "submit-btn" }, "Entrar")
+        React.createElement("button", { type: "submit", className: "submit-btn", disabled: loading }, loading ? "Entrando..." : "Entrar")
       ),
       React.createElement(
         "div",

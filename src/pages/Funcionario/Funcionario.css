@@ -1,4 +1,4 @@
-/* Container Geral e Linha Vermelha */
+
 .funcionario-container {
     font-family: Arial, sans-serif;
     background-color: #f7f7f7;
@@ -14,7 +14,7 @@
      margin-top: -3px; 
 }
 
-/* --- Cabeçalho (Área Branca Superior) --- */
+
 .funcionario-header-full {
     background: #fff;
     display: flex;
@@ -66,7 +66,7 @@
 }
 
 
-/* --- Conteúdo Principal e Centralização --- */
+
 .funcionario-main-content-wrapper {
     flex: 1;
     display: flex;
@@ -78,11 +78,11 @@
     margin: 0 auto;
 }
 
-/* --- Cards de Resumo (CORREÇÃO para layout da imagem: distribuídos uniformemente) --- */
+
 .funcionario-summary-cards {
     display: flex;
-    justify-content: space-between; /* Distribui o espaço entre os 3 cards */
-    gap: 20px; /* Espaço adequado entre os cards */
+    justify-content: space-between; 
+    gap: 20px;
     width: 100%;
     margin-bottom: 30px;
 }
@@ -91,9 +91,9 @@
     background: #fff;
     padding: 10px 25px;
     border-radius: 8px;
-    /* Permite que o flex distribua a largura igualmente */
+   
     flex: 1 1 0; 
-    /* Remove as restrições de largura que estavam quebrando o layout */
+    
     max-width: none; 
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     height: 90px;
@@ -115,7 +115,7 @@
     margin-top: 5px;
 }
 
-/* --- Minhas Manifestações (Container branco) --- */
+
 .minhas-manifestacoes-section-wrapper {
     width: 100%;
 }
@@ -141,7 +141,7 @@
     margin-bottom: 20px;
 }
 
-/* --- Card de Manifestação (Lista de Itens) --- */
+
 .manifestacoes-list {
     display: flex;
     flex-direction: column;
@@ -157,7 +157,7 @@
     position: relative;
 }
 
-/* Topo do Card (Tipo, Data, Status) */
+
 .manifestacao-card-info {
     display: block;
     margin-bottom: 10px;
@@ -171,7 +171,7 @@
     margin-bottom: 15px;
 }
 
-/* CORREÇÃO: Estilo do Tipo como botão vermelho sólido (como na imagem) */
+
 .manifestacao-tipo {
     font-size: 14px;
     font-weight: 600;
@@ -179,7 +179,7 @@
     color: #fff;
     padding: 3px 8px; 
     border-radius: 4px;
-    /* Remove as regras de cor/borda do antigo estilo de texto */
+  
     border-right: none;
 }
 
@@ -189,7 +189,7 @@
     font-weight: 400;
 }
 
-/* Status: Posição superior direita absoluta */
+
 .manifestacao-status {
     position: absolute;
     top: 20px;
@@ -199,7 +199,7 @@
     font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
-    /* CORREÇÃO: Capitalize para Finalizada/Em Análise, como na imagem */
+  
     text-transform: capitalize; 
 }
 .manifestacao-status.em-análise {
@@ -218,7 +218,7 @@
     font-weight: 500;
 }
 
-/* Resposta da Ouvidoria (CORREÇÃO: Fundo Verde Claro da imagem) */
+
 .manifestacao-resposta {
     background-color: #f7fff7;
     padding: 15px;
@@ -240,17 +240,17 @@
     margin: 0;
 }
 
-/* CORREÇÃO: Botão Ver Detalhes (Botão com borda, como na imagem) */
+
 .btn-ver-detalhes {
     background-color: transparent;
-    border: 1px solid #ccc; /* Borda cinza clara */
+    border: 1px solid #ccc; 
     color: #333;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     padding: 6px 12px;
     border-radius: 4px;
-    text-decoration: none; /* Remove sublinhado */
+    text-decoration: none; 
     transition: background-color 0.2s;
 }
 .btn-ver-detalhes:hover {
@@ -338,17 +338,17 @@
 }
 
 
-/* --- Responsividade --- */
+
 @media (max-width: 768px) {
     .funcionario-header-full {
         padding: 15px 15px;
     }
     .funcionario-summary-cards {
         flex-direction: column;
-        gap: 10px; /* Reduz o gap em telas menores */
+        gap: 10px; 
     }
     .funcionario-summary-cards .funcionario-card {
-        width: 100%; /* Ocupa a largura total em telas pequenas */
+        width: 100%; 
         max-width: 100%;
         height: auto;
     }

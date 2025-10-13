@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../../Components/Footer'; 
 import logoSenai from '../../assets/imagens/logosenai.png'; 
-import './UsuariosGeral.css'; // Mudei o CSS de volta para o Geral
+import './UsuariosGeral.css';
 
 const { createElement: e } = React;
 
@@ -20,7 +20,6 @@ const getTipoUsuarioFromEmail = (email) => {
     return "Outro";
 };
 
-// Lista de admins a serem excluídos da visualização (exceto o logado, que já é excluído abaixo)
 const ADMINS_A_EXCLUIR = ['diretor@senai.br'];
 
 const CrudServiceSimulado = {
@@ -30,7 +29,6 @@ const CrudServiceSimulado = {
             if (data) {
                 return JSON.parse(data).map((user, index) => ({
                     id: user.id || index + 1,
-                    // Adiciona o campo 'tipo' deduzido do email
                     tipo: getTipoUsuarioFromEmail(user.email), 
                     ...user
                 }));
@@ -42,7 +40,6 @@ const CrudServiceSimulado = {
         }
     },
     persistUsers: (users) => {
-        // Remove as propriedades temporárias (id, tipo) antes de salvar
         const usersToSave = users.map(({ id, tipo, ...rest }) => rest);
         localStorage.setItem('usuarios', JSON.stringify(usersToSave));
     }
@@ -67,7 +64,6 @@ const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
         e('div', { className: 'admin-header-left' },
             e('img', { src: logo, alt: 'SENAI Logo' }),
             e('div', null,
-                // TÍTULO ATUALIZADO PARA GERAL
                 e('h1', null, 'Painel Administrativo - Geral'),
                 e('span', null, `Bem-vindo(a), ${usuarioNome || 'Admin'}`) 
             )
@@ -75,13 +71,11 @@ const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
         e('div', { className: 'admin-header-right' },
             e('button', {
                 className: getNavClass('manifestacoes'),
-                // ROTA ATUALIZADA PARA O PAINEL GERAL DE MANIFESTAÇÕES
                 onClick: () => navigate('/admin') 
             }, 'Manifestações'),
             
             e('button', {
                 className: getNavClass('usuarios'),
-                // ROTA ATUALIZADA PARA O PAINEL GERAL DE USUÁRIOS
                 onClick: () => navigate('/admin/usuarios-geral') 
             }, 'Usuários'),
             
@@ -93,7 +87,6 @@ const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
     );
 };
 
-// --- COMPONENTE MODAL DE INSPEÇÃO (Endereço Removido) ---
 const ModalInspecionarUsuario = ({ onClose, usuario }) => {
     if (!usuario) return null;
 
@@ -107,13 +100,11 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
                 onClick: (e) => e.stopPropagation() 
             },
             [
-                // Cabeçalho do Modal
                 e('div', { key: 'header', className: 'modal-header' }, [
                     e('h2', { key: 'title' }, `Inspeção de Usuário: ${usuario.nome}`),
                     e('button', { key: 'close', className: 'close-button', onClick: onClose }, '×')
                 ]),
 
-                // Corpo do Modal com os Detalhes
                 e('div', { key: 'body', className: 'modal-body' }, [
                     e('p', { key: 'nome' }, [e('strong', null, 'Nome Completo: '), usuario.nome]),
                     e('p', { key: 'tipo' }, [e('strong', null, 'Tipo de Usuário: '), usuario.tipo || 'N/A']),
@@ -121,10 +112,8 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
                     e('p', { key: 'area' }, [e('strong', null, 'Curso/Área: '), usuario.curso || 'N/A']),
                     e('p', { key: 'telefone' }, [e('strong', null, 'Telefone: '), usuario.telefone || 'N/A']),
                     e('p', { key: 'cpf' }, [e('strong', null, 'CPF: '), usuario.cpf || 'N/A']),
-                    // LINHA ABAIXO FOI REMOVIDA: e('p', { key: 'endereco' }, [e('strong', null, 'Endereço: '), usuario.endereco || 'N/A']),
                 ]),
                 
-                // Rodapé do Modal (botão de fechar)
                 e('div', { key: 'footer', className: 'modal-actions' }, [
                     e('button', { 
                         key: 'btn-fechar', 
@@ -136,17 +125,14 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
         )
     );
 }
-// --- FIM DO COMPONENTE MODAL ---
 
-
-function UsuariosGeral() { // NOME DA FUNÇÃO ATUALIZADO
+function UsuariosGeral() {
     const navigate = useNavigate();
     const [usuarios, setUsuarios] = useState([]);
     const [usuarioLogado, setUsuarioLogado] = useState(null);
     const [filtroTipo, setFiltroTipo] = useState('Todos');
     const [modalUsuario, setModalUsuario] = useState(null); 
 
-    // EMAIL DO ADMIN GERAL
     const ADMIN_EMAIL = 'diretor@senai.br'; 
 
     useEffect(() => {
@@ -162,7 +148,7 @@ function UsuariosGeral() { // NOME DA FUNÇÃO ATUALIZADO
         }
 
         if (!usuario || usuario.email !== ADMIN_EMAIL) {
-            alert('Você precisa estar logado como administrador geral para acessar esta página.'); // ALERTA ATUALIZADO
+            alert('Você precisa estar logado como administrador geral para acessar esta página.');
             navigate('/');
             return;
         }
@@ -170,12 +156,9 @@ function UsuariosGeral() { // NOME DA FUNÇÃO ATUALIZADO
         const todosUsuarios = CrudServiceSimulado.getAllUsers();
 
         const usuariosFiltrados = todosUsuarios.filter(u => {
-            // REMOÇÃO DO FILTRO DE ÁREA (isAreaInfo). Agora mostra todos.
             
-            // Exclui o admin logado para não se auto-gerenciar
             const isNotAdmin = u.email !== ADMIN_EMAIL; 
             
-            // Adiciona a exclusão de outros admins se necessário
             const isNotAdminToExclude = !ADMINS_A_EXCLUIR.includes(u.email);
 
             return isNotAdmin && isNotAdminToExclude;
@@ -225,22 +208,19 @@ function UsuariosGeral() { // NOME DA FUNÇÃO ATUALIZADO
 
     const tabelaCorpo = usuariosFiltrados.length === 0
         ? [e('tr', { key: 'empty' },
-              e('td', { colSpan: 5, className: 'empty-row-message' }, 'Nenhum usuário encontrado para este filtro.') // TEXTO ATUALIZADO
+              e('td', { colSpan: 5, className: 'empty-row-message' }, 'Nenhum usuário encontrado para este filtro.')
           )]
         : usuariosFiltrados.map(u => e('tr', { key: u.id },
               e('td', null, u.tipo || 'N/A'), 
               e('td', null, u.nome),
-              // Exibe u.curso (Área)
               e('td', null, u.curso || 'N/A'), 
               e('td', null, u.email),
               e('td', { className: 'table-actions' },
-                  // Botão "Inspecionar"
                   e('button', { className: 'btn-gerenciar', onClick: () => inspecionarUsuario(u) }, 'Inspecionar'), 
                   e('button', { className: 'btn-excluir', onClick: () => excluirUsuario(u) }, 'Excluir')
               )
           ));
     
-    // Botões de filtro
     const botoesFiltro = ['Todos', 'Aluno', 'Funcionário'].map(tipo => 
         e('button', {
             key: tipo,
@@ -252,7 +232,7 @@ function UsuariosGeral() { // NOME DA FUNÇÃO ATUALIZADO
     return e('div', { className: 'admin-container' },
         e(AdminHeader, { 
             logo: logoSenai, 
-            usuarioNome: usuarioLogado?.nome || 'Diretor', // NOME PADRÃO ATUALIZADO
+            usuarioNome: usuarioLogado?.nome || 'Diretor', 
             navigate: navigate, 
             activePage: "usuarios" 
         }),
@@ -263,8 +243,8 @@ function UsuariosGeral() { // NOME DA FUNÇÃO ATUALIZADO
             e('div', { className: 'usuarios-table-card' },
                 
                 e('div', { className: 'usuarios-header-content-inner' },
-                    e('h3', null, 'Usuários Registrados (Geral)'), // TÍTULO ATUALIZADO
-                    e('p', null, 'Gerencie todos os usuários do sistema') // TEXTO ATUALIZADO
+                    e('h3', null, 'Usuários Registrados (Geral)'),
+                    e('p', null, 'Gerencie todos os usuários do sistema')
                 ),
                 
                 e('div', { className: 'usuarios-filter-buttons' }, 
@@ -289,7 +269,6 @@ function UsuariosGeral() { // NOME DA FUNÇÃO ATUALIZADO
             )
         ),
 
-        // RENDERIZAÇÃO CONDICIONAL DO MODAL
         modalUsuario && e(ModalInspecionarUsuario, { 
             onClose: fecharModal, 
             usuario: modalUsuario 
@@ -301,4 +280,4 @@ function UsuariosGeral() { // NOME DA FUNÇÃO ATUALIZADO
     );
 }
 
-export default UsuariosGeral; // EXPORT ATUALIZADO
+export default UsuariosGeral;

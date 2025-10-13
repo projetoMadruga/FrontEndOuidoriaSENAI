@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../services/api';
+import manifestacoesService from '../../services/manifestacoesService';
 import '../Reclamacao/Reclamacao.css';
 import Footer from '../../Components/Footer';
 import HeaderSimples from '../../Components/HeaderSimples';
@@ -8,6 +8,7 @@ import SetaVoltar from '../../Components/SetaVoltar';
 
 function Reclamacao() {
   const navigate = useNavigate();
+
   const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
 
   const [formData, setFormData] = useState({
@@ -21,20 +22,25 @@ function Reclamacao() {
   });
 
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (usuarioLogado) {
-      setFormData(prev => ({
-        ...prev,
-        nome: usuarioLogado.nome || '',
-        contato: usuarioLogado.email || '',
+      setFormData(prevState => ({
+        ...prevState,
+        nome: usuarioLogado.nome || '', 
+        contato: usuarioLogado.email || '', 
       }));
     }
-  }, []);
+  }, []); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -43,7 +49,10 @@ function Reclamacao() {
       alert('O arquivo é muito grande. O tamanho máximo é 5MB.');
       return;
     }
-    setFormData(prev => ({ ...prev, anexo: file }));
+    setFormData(prevState => ({
+      ...prevState,
+      anexo: file
+    }));
 
     if (file && file.type.startsWith('image/')) {
       const url = URL.createObjectURL(file);
@@ -69,46 +78,66 @@ function Reclamacao() {
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!validarCamposComuns()) return;
-    if (!formData.contato) {
+    if (!formData.contato) { 
       alert('Para envio identificado, o E-mail ou Telefone é obrigatório.');
       return;
     }
 
-    const payload = {
-      tipo: 'Reclamação',
-      nome: formData.nome || 'Não informado',
-      contato: formData.contato,
-      local: formData.local,
-      dataHora: formData.dataHora,
-      descricao: formData.descricao,
-      anexoNome: formData.anexo ? formData.anexo.name : null,
-      setor: formData.setor,
-      status: 'Pendente',
-      dataCriacao: new Date().toLocaleDateString('pt-BR'),
-    };
+    setLoading(true);
+    setError('');
 
-    api.post('/reclamacoes', payload)
-      .then(() => navigate('/confirmacao'))
-      .catch(async (err) => {
-        try {
-          if (err && err.status === 401) {
-            alert('Você precisa estar autenticado para enviar a reclamação. Faça login e tente novamente.');
-            return;
-          }
-          const body = await err.json();
-          alert(body?.message || 'Erro ao enviar a reclamação. Tente novamente.');
-        } catch {
-          alert('Erro ao enviar a reclamação. Tente novamente.');
-        }
-      });
+    try {
+      const reclamacao = {
+        local: formData.local,
+        dataHora: manifestacoesService.formatarDataHora(formData.dataHora),
+        descricaoDetalhada: formData.descricao,
+        tipoReclamacao: manifestacoesService.mapearSetor(formData.setor),
+        caminhoAnexo: formData.anexo ? formData.anexo.name : null
+      };
+
+      await manifestacoesService.criarReclamacao(reclamacao);
+      alert('Reclamação enviada com sucesso!');
+      navigate('/confirmacao');
+    } catch (err) {
+      console.error('Erro ao enviar reclamação:', err);
+      setError('Erro ao enviar reclamação. Tente novamente.');
+      alert('Erro ao enviar reclamação. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAnonimoSubmit = (e) => {
+  const handleAnonimoSubmit = async (e) => {
     e.preventDefault();
-    alert('Envio anônimo não está disponível. Faça login para enviar sua reclamação.');
+
+    if (!validarCamposComuns()) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const reclamacao = {
+        local: formData.local,
+        dataHora: manifestacoesService.formatarDataHora(formData.dataHora),
+        descricaoDetalhada: formData.descricao,
+        tipoReclamacao: manifestacoesService.mapearSetor(formData.setor),
+        caminhoAnexo: formData.anexo ? formData.anexo.name : null
+      };
+
+      await manifestacoesService.criarReclamacao(reclamacao);
+      alert('Reclamação anônima enviada com sucesso!');
+      navigate('/confirmacao');
+    } catch (err) {
+      console.error('Erro ao enviar reclamação anônima:', err);
+      setError('Erro ao enviar reclamação. Tente novamente.');
+      alert('Erro ao enviar reclamação. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return React.createElement(
@@ -119,6 +148,7 @@ function Reclamacao() {
     React.createElement(
       'div',
       { className: 'reclamacao-content' },
+      
       React.createElement('h2', { className: 'titulo-pagina' }, 'Faça uma Reclamação'),
       React.createElement(
         'div',
@@ -133,7 +163,7 @@ function Reclamacao() {
         React.createElement(
           'form',
           { className: 'formulario-reclamacao', onSubmit: handleSubmit },
-
+          
           React.createElement('label', null, 'Nome (opcional)'),
           React.createElement('input', {
             type: 'text',
@@ -142,7 +172,7 @@ function Reclamacao() {
             onChange: handleChange,
             placeholder: 'Nome completo (se logado, já estará preenchido)'
           }),
-
+          
           React.createElement('label', null, 'E-mail ou Telefone *'),
           React.createElement('input', {
             type: 'text',
@@ -150,21 +180,23 @@ function Reclamacao() {
             value: formData.contato,
             onChange: handleChange,
             placeholder: 'E-mail ou Telefone (obrigatório para envio identificado)',
-            required: true
+            required: true 
           }),
-
+          
           React.createElement('label', null, 'Setor de Destino *'),
           React.createElement('select', {
             name: 'setor',
             value: formData.setor,
             onChange: handleChange,
             required: true
-          }, [
-            React.createElement('option', { key: 'geral', value: 'Geral' }, 'Outro / Geral'),
-            React.createElement('option', { key: 'info', value: 'Informatica' }, 'Informática'),
-            React.createElement('option', { key: 'mec', value: 'Mecanica' }, 'Mecânica'),
-            React.createElement('option', { key: 'fac', value: 'Faculdade' }, 'Faculdade')
-          ]),
+          }, 
+            [
+              React.createElement('option', { key: 'geral', value: 'Geral' }, 'Outro / Geral'),
+              React.createElement('option', { key: 'info', value: 'Informatica' }, 'Informática'),
+              React.createElement('option', { key: 'mec', value: 'Mecanica' }, 'Mecânica'),
+              React.createElement('option', { key: 'fac', value: 'Faculdade' }, 'Faculdade')
+            ]
+          ),
 
           React.createElement('label', null, 'Local do incidente *'),
           React.createElement('input', {
@@ -175,16 +207,16 @@ function Reclamacao() {
             placeholder: 'Ex: Sala B-10, Pátio, Oficina de Mecânica...',
             required: true
           }),
-
+          
           React.createElement('label', null, 'Data e Hora do incidente *'),
           React.createElement('input', {
-            type: 'datetime-local',
+            type: 'datetime-local', 
             name: 'dataHora',
             value: formData.dataHora,
             onChange: handleChange,
             required: true
           }),
-
+          
           React.createElement('label', null, 'Descrição detalhada da Reclamação *'),
           React.createElement(
             'div',
@@ -207,33 +239,51 @@ function Reclamacao() {
               })
             ),
             React.createElement('input', {
-              id: 'file-upload-reclamacao',
+              id: 'file-upload-reclamacao', 
               type: 'file',
               onChange: handleFileChange,
               style: { display: 'none' }
             }),
 
-            formData.anexo && React.createElement(
-              'p',
-              { className: 'arquivo-selecionado' },
-              'Arquivo selecionado: ',
-              formData.anexo.name
-            ),
+            formData.anexo &&
+              React.createElement(
+                'p',
+                { className: 'arquivo-selecionado' },
+                'Arquivo selecionado: ',
+                formData.anexo.name
+              ),
 
-            previewUrl && React.createElement('img', {
-              src: previewUrl,
-              alt: 'Preview do anexo',
-              style: { marginTop: '10px', maxWidth: '100%', maxHeight: '300px', borderRadius: '4px' }
-            })
+            previewUrl &&
+              React.createElement('img', {
+                src: previewUrl,
+                alt: 'Preview do anexo',
+                style: { marginTop: '10px', maxWidth: '100%', maxHeight: '300px', borderRadius: '4px' }
+              })
           ),
-
+          
           React.createElement('small', null, 'Atenção: Evite compartilhar imagens que possam comprometer sua segurança ou de outra pessoa.'),
-
+          
+          error && React.createElement('p', { style: { color: 'red', textAlign: 'center', marginTop: '10px' } }, error),
+          
           React.createElement(
             'div',
             { style: { display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '15px' } },
-            React.createElement('button', { type: 'submit', className: 'btn-confirmar' }, 'Confirmar'),
-            React.createElement('button', { type: 'button', className: 'btn-confirmar', style: { backgroundColor: '#666' }, onClick: handleAnonimoSubmit }, 'Enviar Anônimo')
+            React.createElement(
+              'button',
+              { type: 'submit', className: 'btn-confirmar', disabled: loading },
+              loading ? 'Enviando...' : 'Confirmar'
+            ),
+            React.createElement(
+              'button',
+              {
+                type: 'button',
+                className: 'btn-confirmar',
+                style: { backgroundColor: '#666' },
+                onClick: handleAnonimoSubmit,
+                disabled: loading
+              },
+              loading ? 'Enviando...' : 'Enviar Anônimo'
+            )
           )
         )
       )

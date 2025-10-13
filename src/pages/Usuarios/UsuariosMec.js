@@ -27,7 +27,6 @@ const CrudServiceSimulado = {
             if (data) {
                 return JSON.parse(data).map((user, index) => ({
                     id: user.id || index + 1,
-                    // Adiciona o campo 'tipo' deduzido do email
                     tipo: getTipoUsuarioFromEmail(user.email), 
                     ...user
                 }));
@@ -39,7 +38,6 @@ const CrudServiceSimulado = {
         }
     },
     persistUsers: (users) => {
-        // Remove 'id' e 'tipo' antes de salvar
         const usersToSave = users.map(({ id, tipo, ...rest }) => rest);
         localStorage.setItem('usuarios', JSON.stringify(usersToSave));
     }
@@ -87,7 +85,6 @@ const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
     );
 };
 
-// --- COMPONENTE MODAL DE INSPEÇÃO (Adicionado e sem Endereço) ---
 const ModalInspecionarUsuario = ({ onClose, usuario }) => {
     if (!usuario) return null;
 
@@ -101,13 +98,11 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
                 onClick: (e) => e.stopPropagation() 
             },
             [
-                // Cabeçalho do Modal
                 e('div', { key: 'header', className: 'modal-header' }, [
                     e('h2', { key: 'title' }, `Inspeção de Usuário: ${usuario.nome}`),
                     e('button', { key: 'close', className: 'close-button', onClick: onClose }, '×')
                 ]),
 
-                // Corpo do Modal com os Detalhes
                 e('div', { key: 'body', className: 'modal-body' }, [
                     e('p', { key: 'nome' }, [e('strong', null, 'Nome Completo: '), usuario.nome]),
                     e('p', { key: 'tipo' }, [e('strong', null, 'Tipo de Usuário: '), usuario.tipo || 'N/A']),
@@ -117,7 +112,6 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
                     e('p', { key: 'cpf' }, [e('strong', null, 'CPF: '), usuario.cpf || 'N/A']),
                 ]),
                 
-                // Rodapé do Modal (botão de fechar)
                 e('div', { key: 'footer', className: 'modal-actions' }, [
                     e('button', { 
                         key: 'btn-fechar', 
@@ -129,15 +123,12 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
         )
     );
 }
-// --- FIM DO COMPONENTE MODAL ---
-
 
 function UsuariosMec() {
     const navigate = useNavigate();
     const [usuarios, setUsuarios] = useState([]);
     const [usuarioLogado, setUsuarioLogado] = useState(null);
     const [filtroTipo, setFiltroTipo] = useState('Todos');
-    // NOVO ESTADO: Adiciona o estado para controlar o modal
     const [modalUsuario, setModalUsuario] = useState(null); 
 
     const ADMIN_EMAIL = 'pino@senai.br';
@@ -164,11 +155,9 @@ function UsuariosMec() {
 
         const usuariosFiltrados = todosUsuarios.filter(u => {
             
-            // FILTRO CRÍTICO: Filtra por 'mecanica' no campo u.curso
             const cursoNormalizado = normalizeString(u.curso);
             const isAreaMec = cursoNormalizado === 'mecanica'; 
             
-            // Exclui o admin logado
             const isNotAdmin = u.email !== ADMIN_EMAIL; 
 
             return isAreaMec && isNotAdmin;
@@ -180,7 +169,6 @@ function UsuariosMec() {
 
     const filtrarPorTipo = (lista, tipo) => {
         if (tipo === 'Todos') return lista;
-        // Filtra pelo tipo deduzido do email
         return lista.filter(u => normalizeString(u.tipo) === normalizeString(tipo)); 
     };
 
@@ -195,12 +183,10 @@ function UsuariosMec() {
         }
     };
     
-    // FUNÇÃO QUE ABRE O MODAL
     const inspecionarUsuario = (usuario) => {
         setModalUsuario(usuario); 
     };
     
-    // FUNÇÃO QUE FECHA O MODAL
     const fecharModal = () => {
         setModalUsuario(null);
     };
@@ -211,7 +197,6 @@ function UsuariosMec() {
             const novosUsuariosMec = usuarios.filter(u => u.id !== usuario.id);
             setUsuarios(novosUsuariosMec);
             
-            // Persiste a exclusão no LocalStorage global
             const todosUsuarios = CrudServiceSimulado.getAllUsers();
             const listaFinal = todosUsuarios.filter(u => u.id !== usuario.id);
             CrudServiceSimulado.persistUsers(listaFinal);
@@ -227,17 +212,14 @@ function UsuariosMec() {
         : usuariosFiltrados.map(u => e('tr', { key: u.id },
               e('td', null, u.tipo || 'N/A'), 
               e('td', null, u.nome),
-              // Exibe u.curso como Área
               e('td', null, u.curso || 'N/A'), 
               e('td', null, u.email),
               e('td', { className: 'table-actions' },
-                  // BOTÃO ATUALIZADO: Substituindo 'Gerenciar' por 'Inspecionar'
                   e('button', { className: 'btn-gerenciar', onClick: () => inspecionarUsuario(u) }, 'Inspecionar'),
                   e('button', { className: 'btn-excluir', onClick: () => excluirUsuario(u) }, 'Excluir')
               )
           ));
     
-    // Botões de filtro
     const botoesFiltro = ['Todos', 'Aluno', 'Funcionário'].map(tipo => 
         e('button', {
             key: tipo,
@@ -246,7 +228,6 @@ function UsuariosMec() {
         }, getTipoLabel(tipo))
     );
 
-    // Renderização final do componente
     return e('div', { className: 'admin-container' },
         e(AdminHeader, { 
             logo: logoSenai, 
@@ -287,7 +268,6 @@ function UsuariosMec() {
             )
         ),
 
-        // RENDERIZAÇÃO CONDICIONAL DO MODAL
         modalUsuario && e(ModalInspecionarUsuario, { 
             onClose: fecharModal, 
             usuario: modalUsuario 

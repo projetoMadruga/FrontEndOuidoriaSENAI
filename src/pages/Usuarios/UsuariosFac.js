@@ -27,7 +27,6 @@ const CrudServiceSimulado = {
             if (data) {
                 return JSON.parse(data).map((user, index) => ({
                     id: user.id || index + 1,
-                    // Adiciona o campo 'tipo' deduzido do email
                     tipo: getTipoUsuarioFromEmail(user.email), 
                     ...user
                 }));
@@ -39,7 +38,6 @@ const CrudServiceSimulado = {
         }
     },
     persistUsers: (users) => {
-        // Remove as propriedades temporárias (id, tipo) antes de salvar
         const usersToSave = users.map(({ id, tipo, ...rest }) => rest);
         localStorage.setItem('usuarios', JSON.stringify(usersToSave));
     }
@@ -87,7 +85,6 @@ const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
     );
 };
 
-// --- COMPONENTE MODAL DE INSPEÇÃO (Incluso no arquivo) ---
 const ModalInspecionarUsuario = ({ onClose, usuario }) => {
     if (!usuario) return null;
 
@@ -101,13 +98,11 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
                 onClick: (e) => e.stopPropagation() 
             },
             [
-                // Cabeçalho do Modal
                 e('div', { key: 'header', className: 'modal-header' }, [
                     e('h2', { key: 'title' }, `Inspeção de Usuário: ${usuario.nome}`),
                     e('button', { key: 'close', className: 'close-button', onClick: onClose }, '×')
                 ]),
 
-                // Corpo do Modal com os Detalhes
                 e('div', { key: 'body', className: 'modal-body' }, [
                     e('p', { key: 'nome' }, [e('strong', null, 'Nome Completo: '), usuario.nome]),
                     e('p', { key: 'tipo' }, [e('strong', null, 'Tipo de Usuário: '), usuario.tipo || 'N/A']),
@@ -117,11 +112,9 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
                     e('p', { key: 'cpf' }, [e('strong', null, 'CPF: '), usuario.cpf || 'N/A']),
                 ]),
                 
-                // Rodapé do Modal (botão de fechar)
                 e('div', { key: 'footer', className: 'modal-actions' }, [
                     e('button', { 
                         key: 'btn-fechar', 
-                        // Corrigido a classe do botão para btn-primary para aderir ao padrão
                         className: 'btn-primary', 
                         onClick: onClose 
                     }, 'Fechar')
@@ -130,15 +123,12 @@ const ModalInspecionarUsuario = ({ onClose, usuario }) => {
         )
     );
 }
-// --- FIM DO COMPONENTE MODAL ---
-
 
 function UsuariosFac() {
     const navigate = useNavigate();
     const [usuarios, setUsuarios] = useState([]);
     const [usuarioLogado, setUsuarioLogado] = useState(null);
     const [filtroTipo, setFiltroTipo] = useState('Todos');
-    // Estado que armazena o usuário a ser exibido no modal
     const [modalUsuario, setModalUsuario] = useState(null); 
 
     useEffect(() => {
@@ -165,12 +155,9 @@ function UsuariosFac() {
 
         const usuariosFiltrados = todosUsuarios.filter(u => {
             
-            // Filtro de Área/Curso (usa u.curso do LocalStorage)
             const cursoNormalizado = normalizeString(u.curso);
-            // Inclui usuários cujo curso seja 'informatica' ou 'ti'
             const isAreaInfo = cursoNormalizado === 'faculdade' || cursoNormalizado === 'fac'; 
             
-            // Exclui o admin logado
             const isNotAdmin = u.email !== ADMIN_EMAIL; 
 
             return isAreaInfo && isNotAdmin;
@@ -196,12 +183,10 @@ function UsuariosFac() {
         }
     };
     
-    // FUNÇÃO QUE ABRE O MODAL
     const inspecionarUsuario = (usuario) => {
         setModalUsuario(usuario); 
     };
     
-    // FUNÇÃO QUE FECHA O MODAL
     const fecharModal = () => {
         setModalUsuario(null);
     };
@@ -227,17 +212,14 @@ function UsuariosFac() {
         : usuariosFiltrados.map(u => e('tr', { key: u.id },
               e('td', null, u.tipo || 'N/A'), 
               e('td', null, u.nome),
-              // Exibe u.curso (Área)
               e('td', null, u.curso || 'N/A'), 
               e('td', null, u.email),
               e('td', { className: 'table-actions' },
-                  // Botão "Inspecionar" chama a função que abre o modal
                   e('button', { className: 'btn-gerenciar', onClick: () => inspecionarUsuario(u) }, 'Inspecionar'), 
                   e('button', { className: 'btn-excluir', onClick: () => excluirUsuario(u) }, 'Excluir')
               )
           ));
     
-    // Botões de filtro
     const botoesFiltro = ['Todos', 'Aluno', 'Funcionário'].map(tipo => 
         e('button', {
             key: tipo,
@@ -286,7 +268,6 @@ function UsuariosFac() {
             )
         ),
 
-        // RENDERIZAÇÃO CONDICIONAL DO MODAL
         modalUsuario && e(ModalInspecionarUsuario, { 
             onClose: fecharModal, 
             usuario: modalUsuario 

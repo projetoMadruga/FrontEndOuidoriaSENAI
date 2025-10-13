@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CrudService from '../../services/CrudService';
-import { api } from '../../services/api';
+import manifestacoesService from '../../services/manifestacoesService';
 import '../Denuncia/Denuncia.css';
 import Footer from '../../Components/Footer';
 import HeaderSimples from '../../Components/HeaderSimples';
 import SetaVoltar from '../../Components/SetaVoltar';
 
 function Denuncia() {
-  const navigate = useNavigate();
+  const navigate = useNavigate();
 
-  const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+  const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({
     nome: '',
     contato: '',
     setor: 'Geral',
@@ -24,6 +23,8 @@ function Denuncia() {
 
   const [previewUrl, setPreviewUrl] = useState(null);
   const [anexoBase64, setAnexoBase64] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (usuarioLogado) {
@@ -74,7 +75,8 @@ function Denuncia() {
       reader.onload = () => {
         setAnexoBase64(reader.result);
       };
-      reader.onerror = () => {
+      reader.onerror = (error) => {
+        console.error('Erro ao ler o arquivo:', error);
         setAnexoBase64(null);
       };
     } else {
@@ -99,7 +101,7 @@ function Denuncia() {
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validarCamposComuns()) return;
@@ -108,41 +110,55 @@ function Denuncia() {
       return;
     }
 
-    const denuncia = {
-      tipo: CrudService.TIPOS_MANIFESTACAO.DENUNCIA,
-      nome: formData.nome || 'Não informado',
-      contato: formData.contato,
-      local: formData.local,
-      dataHora: formData.dataHora,
-      descricao: formData.descricao,
-      anexoNome: formData.anexo ? formData.anexo.name : null,
-      anexoBase64: anexoBase64,
-      setor: formData.setor,
-      status: 'Pendente',
-      dataCriacao: new Date().toLocaleDateString('pt-BR'),
-    };
+    setLoading(true);
+    setError('');
 
-    api.post('/denuncias', denuncia)
-      .then(() => {
-        navigate('/confirmacao');
-      })
-      .catch(async (err) => {
-        try {
-          if (err && err.status === 401) {
-            alert('Você precisa estar autenticado para enviar a denúncia. Faça login e tente novamente.');
-            return;
-          }
-          const body = await err.json();
-          alert(body?.message || 'Erro ao enviar a denúncia. Tente novamente.');
-        } catch {
-          alert('Erro ao enviar a denúncia. Tente novamente.');
-        }
-      });
+    try {
+      const denuncia = {
+        local: formData.local,
+        dataHora: manifestacoesService.formatarDataHora(formData.dataHora),
+        descricaoDetalhada: formData.descricao,
+        caminhoAnexo: formData.anexo ? formData.anexo.name : null
+      };
+
+      await manifestacoesService.criarDenuncia(denuncia);
+      alert('Denúncia enviada com sucesso!');
+      navigate('/confirmacao');
+    } catch (err) {
+      console.error('Erro ao enviar denúncia:', err);
+      setError('Erro ao enviar denúncia. Tente novamente.');
+      alert('Erro ao enviar denúncia. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAnonimoSubmit = (e) => {
+  const handleAnonimoSubmit = async (e) => {
     e.preventDefault();
-    alert('Envio anônimo não está disponível. Faça login para enviar sua denúncia.');
+
+    if (!validarCamposComuns()) return;
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const denuncia = {
+        local: formData.local,
+        dataHora: manifestacoesService.formatarDataHora(formData.dataHora),
+        descricaoDetalhada: formData.descricao,
+        caminhoAnexo: formData.anexo ? formData.anexo.name : null
+      };
+
+      await manifestacoesService.criarDenuncia(denuncia);
+      alert('Denúncia anônima enviada com sucesso!');
+      navigate('/confirmacao');
+    } catch (err) {
+      console.error('Erro ao enviar denúncia anônima:', err);
+      setError('Erro ao enviar denúncia. Tente novamente.');
+      alert('Erro ao enviar denúncia. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return React.createElement(
@@ -167,7 +183,6 @@ function Denuncia() {
         React.createElement(
           'form',
           { className: 'formulario-denuncia', onSubmit: handleSubmit },
-
           React.createElement('label', null, 'Nome (opcional)'),
           React.createElement('input', {
             type: 'text',
@@ -176,7 +191,6 @@ function Denuncia() {
             onChange: handleChange,
             placeholder: 'Nome completo (se logado, já estará preenchido)'
           }),
-
           React.createElement('label', null, 'E-mail ou Telefone *'),
           React.createElement('input', {
             type: 'text',
@@ -186,7 +200,6 @@ function Denuncia() {
             placeholder: 'E-mail ou Telefone (obrigatório para envio identificado)',
             required: true
           }),
-
           React.createElement('label', null, 'Setor de Destino *'),
           React.createElement('select', {
             name: 'setor',
@@ -194,14 +207,11 @@ function Denuncia() {
             onChange: handleChange,
             required: true
           },
-            [
-              React.createElement('option', { key: 'geral', value: 'Geral' }, 'Outro / Geral'),
-              React.createElement('option', { key: 'info', value: 'Informatica' }, 'Informática'),
-              React.createElement('option', { key: 'mec', value: 'Mecanica' }, 'Mecânica'),
-              React.createElement('option', { key: 'fac', value: 'Faculdade' }, 'Faculdade')
-            ]
+            React.createElement('option', { key: 'geral', value: 'Geral' }, 'Outro / Geral'),
+            React.createElement('option', { key: 'info', value: 'Informatica' }, 'Informática'),
+            React.createElement('option', { key: 'mec', value: 'Mecanica' }, 'Mecânica'),
+            React.createElement('option', { key: 'fac', value: 'Faculdade' }, 'Faculdade')
           ),
-
           React.createElement('label', null, 'Local do incidente *'),
           React.createElement('input', {
             type: 'text',
@@ -211,7 +221,6 @@ function Denuncia() {
             placeholder: 'Ex: Sala B-10, Pátio, Oficina de Mecânica...',
             required: true
           }),
-
           React.createElement('label', null, 'Data e Hora do incidente *'),
           React.createElement('input', {
             type: 'datetime-local',
@@ -220,7 +229,6 @@ function Denuncia() {
             onChange: handleChange,
             required: true
           }),
-
           React.createElement('label', null, 'Descrição detalhada da denúncia *'),
           React.createElement(
             'div',
@@ -248,7 +256,6 @@ function Denuncia() {
               onChange: handleFileChange,
               style: { display: 'none' }
             }),
-
             formData.anexo &&
               React.createElement(
                 'p',
@@ -256,7 +263,6 @@ function Denuncia() {
                 'Arquivo selecionado: ',
                 formData.anexo.name
               ),
-
             previewUrl &&
               React.createElement('img', {
                 src: previewUrl,
@@ -264,16 +270,15 @@ function Denuncia() {
                 style: { marginTop: '10px', maxWidth: '100%', maxHeight: '300px', borderRadius: '4px' }
               })
           ),
-
           React.createElement('small', null, 'Atenção: Evite compartilhar imagens que possam comprometer sua segurança ou de outra pessoa.'),
-
+          error && React.createElement('p', { style: { color: 'red', textAlign: 'center', marginTop: '10px' } }, error),
           React.createElement(
             'div',
             { style: { display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '15px' } },
             React.createElement(
               'button',
-              { type: 'submit', className: 'btn-confirmar' },
-              'Confirmar'
+              { type: 'submit', className: 'btn-confirmar', disabled: loading },
+              loading ? 'Enviando...' : 'Confirmar'
             ),
             React.createElement(
               'button',
@@ -281,9 +286,10 @@ function Denuncia() {
                 type: 'button',
                 className: 'btn-confirmar',
                 style: { backgroundColor: '#666' },
-                onClick: handleAnonimoSubmit
+                onClick: handleAnonimoSubmit,
+                disabled: loading
               },
-              'Enviar Anônimo'
+              loading ? 'Enviando...' : 'Enviar Anônimo'
             )
           )
         )

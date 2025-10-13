@@ -3,9 +3,6 @@ import './ModalGerenciar.css';
 
 const { createElement: e } = React;
 
-/**
- * Normaliza a string para comparação (sem acentos, minúsculas e sem espaços).
- */
 const normalizeString = (str) => {
     return String(str || '')
         .normalize('NFD')
@@ -17,23 +14,18 @@ const normalizeString = (str) => {
 
 function ModalGerenciar({ onClose, manifestacao, onSaveResponse, readOnly = false, adminSetor }) {
     
-    // Desestrutura a prop para facilitar o uso e garantir valores padrão
     const { 
         respostaAdmin = '', 
         status = 'Pendente',
-        // Garante que o tipo seja lido para o título do modal
         tipo = 'Manifestação' 
     } = manifestacao || {};
 
-    // 1. Normalização das áreas e tipo de manifestação
     const setorManifestacaoNormalizado = normalizeString(manifestacao?.setor); 
     const tipoManifestacaoNormalizado = normalizeString(manifestacao?.tipo);
     const adminSetorNormalizado = normalizeString(adminSetor); 
 
-    // --- LÓGICA DE PERMISSÃO: Define se o ADMIN DESTA ÁREA TEM direito de editar ---
     let podeEditarPelaRegra = false;
 
-    // A permissão só é verificada se o componente pai (AdmX.js) não definiu explicitamente como 'readOnly'
     if (!readOnly) { 
         switch (adminSetorNormalizado) {
             case 'geral':
@@ -50,7 +42,6 @@ function ModalGerenciar({ onClose, manifestacao, onSaveResponse, readOnly = fals
                 }
                 break;
             case 'mecanica':
-                // Mecânica pode editar manifestações de Mecânica, Geral, e TODAS as Reclamações
                 const isReclamacao = tipoManifestacaoNormalizado === 'reclamacao' || tipoManifestacaoNormalizado === 'reclamação';
                 if (setorManifestacaoNormalizado === 'mecanica' || setorManifestacaoNormalizado === 'geral' || isReclamacao) {
                     podeEditarPelaRegra = true;
@@ -61,24 +52,17 @@ function ModalGerenciar({ onClose, manifestacao, onSaveResponse, readOnly = fals
         }
     }
     
-    // ✅ CORREÇÃO CRÍTICA: Permissão final é a REGRA AND NOT readOnly
     const canEdit = podeEditarPelaRegra && !readOnly; 
-    // --- FIM DA LÓGICA DE PERMISSÃO ---
 
-    // Estado e hooks internos
     const [resposta, setResposta] = useState(respostaAdmin);
     const [novoStatus, setNovoStatus] = useState(status);
     
-    // CRÍTICO: Estado para controlar o modo de edição (visualizar x editar campos)
     const [isEditing, setIsEditing] = useState(false); 
 
-    // Sincronização do estado interno com a prop 'manifestacao'
     useEffect(() => {
         setResposta(respostaAdmin);
         setNovoStatus(status);
         
-        // Garante que o Modal SEMPRE comece no modo de VISUALIZAÇÃO ao abrir
-        // E impede que o modo de edição seja ativado se o admin não puder editar
         setIsEditing(false); 
         
     }, [manifestacao]); 
@@ -101,7 +85,6 @@ function ModalGerenciar({ onClose, manifestacao, onSaveResponse, readOnly = fals
         if (onSaveResponse) {
             onSaveResponse(manifestacao.id, novoStatus, resposta);
         }
-        // Volta para a visualização ao salvar com sucesso
         setIsEditing(false);
     };
     
@@ -116,7 +99,6 @@ function ModalGerenciar({ onClose, manifestacao, onSaveResponse, readOnly = fals
         ? `Gerenciar Manifestação: ${tipo || 'N/A'}` 
         : `Visualizando Manifestação: ${tipo || 'N/A'}`;
 
-    // BLOCOS DE CONTEÚDO CONDICIONAL (EDITAR)
     const contentEditing = [
         e('h3', { key: 'h3-admin-edit' }, 'Responder e Atualizar Status'),
         
@@ -162,19 +144,16 @@ function ModalGerenciar({ onClose, manifestacao, onSaveResponse, readOnly = fals
         ])
     ];
 
-    // BLOCOS DE CONTEÚDO CONDICIONAL (VISUALIZAR)
     const contentView = [
         e('h3', { key: 'h3-admin-view' }, 'Resposta da Administração'),
         e('p', { key: 'resposta-salva' }, [e('strong', null, 'Resposta: '), manifestacao.respostaAdmin || 'Nenhuma resposta registrada.']),
         e('p', { key: 'data-resposta' }, [e('strong', null, 'Data da Resposta: '), manifestacao.dataResposta || 'N/A']),
         
         e('div', { key: 'modal-actions-view', className: 'modal-actions' }, [
-            // Botão "Editar Resposta" aparece SE houver permissão (canEdit)
             canEdit && e('button', { 
                 key: 'btn-editar', 
                 className: 'btn-secondary', 
                 onClick: () => {
-                    // Ao entrar em edição, carrega a resposta ATUAL DA PROP para os estados
                     setResposta(respostaAdmin); 
                     setNovoStatus(status);
                     setIsEditing(true);
@@ -239,7 +218,6 @@ function ModalGerenciar({ onClose, manifestacao, onSaveResponse, readOnly = fals
                         e('hr', { key: 'hr-after-anexo' }),
                     ]),
                     
-                    // Renderiza o modo de edição ou visualização baseado na permissão e estado
                     ...(canEdit && isEditing ? contentEditing : contentView)
                 ])
             ]

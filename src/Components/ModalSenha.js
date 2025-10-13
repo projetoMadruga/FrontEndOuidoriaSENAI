@@ -1,44 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Modal.css";
+import logosenai from "../assets/imagens/logosenai.png";
+import boneco from "../assets/imagens/boneco.png";
 
 function ModalSenha({ isOpen, onClose }) {
   const [email, setEmail] = useState("");
-  const [novaSenha, setNovaSenha] = useState("");
+  const [mensagemEnviada, setMensagemEnviada] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isOpen) {
+      setMensagemEnviada(false);
+      setEmail(""); 
+    }
+  }, [isOpen]);
+
 
   if (!isOpen) return null;
 
-  const redirecionarPorEmail = (email) => {
-    if (email === "pino@senai.br") return navigate("/admin/adm-mec");
-    if (email === "chile@senai.br") return navigate("/admin/adm-info");
-    if (email === "diretor@senai.br") return navigate("/admin");
-    if (email === "viera@senai.br") return navigate("/adm-fac");
-    if (email.endsWith("@aluno.senai.br")) return navigate("/aluno");
-    if (email.endsWith("@senai.br")) return navigate("/funcionario");
-    alert("E-mail não autorizado.");
-  };
-
-  const handleSenha = (e) => {
+  const handleSolicitacaoSenha = (e) => {
     e.preventDefault();
+    
     const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-    const index = usuarios.findIndex((u) => u.email === email);
+    const usuarioExiste = usuarios.some((u) => u.email === email);
 
-    if (index === -1) {
-      alert("Usuário não encontrado.");
+    if (!usuarioExiste) {
+      alert("E-mail não cadastrado.");
       return;
     }
 
-    usuarios[index].senha = novaSenha;
-    localStorage.setItem("usuarios", JSON.stringify(usuarios));
-
-    localStorage.setItem("usuarioLogado", JSON.stringify(usuarios[index]));
-    alert("Senha redefinida com sucesso!");
-
-    redirecionarPorEmail(email);
+    console.log(`Simulando envio de e-mail de redefinição para: ${email}`);
+    
     setEmail("");
-    setNovaSenha("");
-    onClose();
+    setMensagemEnviada(true);
   };
 
   return React.createElement(
@@ -48,26 +43,40 @@ function ModalSenha({ isOpen, onClose }) {
       "div",
       { className: "modal-container", onClick: (e) => e.stopPropagation() },
       React.createElement("button", { className: "close-btn", onClick: onClose }, "×"),
+      
+      React.createElement("img", { src: logosenai, alt: "Logo SENAI", className: "logo-senai-modal" }),
+      React.createElement("div", { className: "linha-vermelha" }),
+      
       React.createElement("h2", { className: "titulo-principal" }, "Redefinir Senha"),
-      React.createElement(
-        "form",
-        { onSubmit: handleSenha },
-        React.createElement("input", {
-          type: "email",
-          placeholder: "Digite seu e-mail",
-          value: email,
-          onChange: (e) => setEmail(e.target.value),
-          required: true,
-        }),
-        React.createElement("input", {
-          type: "password",
-          placeholder: "Nova senha",
-          value: novaSenha,
-          onChange: (e) => setNovaSenha(e.target.value),
-          required: true,
-        }),
-        React.createElement("button", { type: "submit", className: "submit-btn" }, "Salvar Senha")
-      )
+
+      mensagemEnviada 
+        ? 
+          React.createElement(
+            "div", 
+            { className: "submit-btn mensagem-sucesso" }, 
+           
+            React.createElement("p", null, "Um e-mail foi enviado para você com instruções para redefinir sua senha. Verifique sua caixa de entrada e spam.")
+          )
+        : 
+          React.createElement(
+            "form",
+            { onSubmit: handleSolicitacaoSenha },
+            
+            React.createElement(
+              "div",
+              { className: "input-icon-container" },
+              React.createElement("img", { src: boneco, alt: "usuário" }),
+              React.createElement("input", {
+                type: "email",
+                placeholder: "Digite seu e-mail institucional",
+                value: email,
+                onChange: (e) => setEmail(e.target.value),
+                required: true,
+              })
+            ),
+            
+            React.createElement("button", { type: "submit", className: "submit-btn" }, "Enviar Solicitação")
+          )
     )
   );
 }

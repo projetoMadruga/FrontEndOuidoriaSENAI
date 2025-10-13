@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { listarTodasManifestacoes } from '../../services/adminApi';
-import { api } from '../../services/api';
+import CrudService from '../../services/CrudService';
 import Footer from '../../Components/Footer';
 import SenaiLogo from '../../assets/imagens/logosenai.png';
 import ModalGerenciar from '../../Components/ModalGerenciar';
@@ -28,7 +27,6 @@ const NORMALIZED_MAPPING = Object.fromEntries(
     Object.entries(ADMIN_MAPPING).map(([email, area]) => [email, normalizeString(area)])
 );
 
-// LÓGICA DE PERMISSÃO (Mantida)
 const canEditManifestacao = (manifestacao, currentAdminArea) => {
     const adminArea = normalizeString(currentAdminArea);
     const manifestacaoArea = normalizeString(manifestacao.setor);
@@ -41,23 +39,17 @@ const canEditManifestacao = (manifestacao, currentAdminArea) => {
     if (adminArea === 'mecanica') {
         const isReclamacao = manifestacaoTipo === 'reclamacao' || manifestacaoTipo === 'reclamação';
 
-        // Pode editar Mecânica, Geral, ou qualquer Reclamação
         if (manifestacaoArea === 'mecanica' || manifestacaoArea === 'geral' || isReclamacao) {
             return true;
         }
     }
 
-    // Regra padrão: Se a manifestação foi direcionada ao setor do admin
     return adminArea === manifestacaoArea;
 };
 
 
-// =======================================================================
-// AdminHeader (Mantido)
-// =======================================================================
 const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
     
-    // Texto de boas-vindas: Usa o nome (somente o primeiro nome) ou um fallback
     const welcomeText = adminName 
         ? `${adminName.split(' ')[0]}`
         : `Admin de ${adminAreaName}`; 
@@ -102,9 +94,6 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
         ]
     );
 };
-// =======================================================================
-// FIM AdminHeader
-// =======================================================================
 
 
 function AdmMec() {
@@ -148,63 +137,32 @@ function AdmMec() {
         const areaName = ADMIN_MAPPING[userEmail];
         setCurrentAdminAreaName(areaName);
             
-        // Carrega a lista do backend usando adminApi (token já é anexado por api.js)
-        (async () => {
-            try {
-                const dados = await listarTodasManifestacoes();
-                setManifestacoes(dados);
-            } catch (err) {
-                console.error('Erro ao carregar manifestações do backend:', err);
-                alert('Não foi possível carregar as manifestações. Verifique seu login/permissões.');
-            }
-        })();
+        const todasManifestacoes = CrudService.getAll();
+        
+        setManifestacoes(todasManifestacoes.map(m => ({ ...m })));
 
     }, [navigate]);
     
+    if (!currentAdminArea) {
+        return e('div', null, 'Carregando painel...');
+    }
+
+    
     const excluirManifestacao = (id) => {
-        const item = manifestacoes.find(m => m.id === id);
-        if (!item) {
-            alert('Manifestação não encontrada.');
-            return;
-        }
-        if (!canEditManifestacao(item, currentAdminArea)) {
-            alert(`Você só pode excluir manifestações da sua área (${currentAdminAreaName}), manifestações Gerais ou Reclamações.`);
-            return;
-        }
-        if (!window.confirm('Tem certeza que deseja excluir essa manifestação?')) return;
+        const manifestacao = manifestacoes.find(m => m.id === id);
 
-        const tipo = normalizeString(item.tipo);
-        let base = '';
-        if (tipo === 'reclamacao' || tipo === 'reclamação') base = '/reclamacoes';
-        else if (tipo === 'denuncia' || tipo === 'denúncia') base = '/denuncias';
-        else if (tipo === 'elogio') base = '/elogios';
-        else if (tipo === 'sugestao' || tipo === 'sugestão') base = '/sugestoes';
-        else {
-            alert('Tipo de manifestação desconhecido para exclusão.');
-            return;
+        if (!manifestacao || !canEditManifestacao(manifestacao, currentAdminArea)) {
+             alert(`Você só pode excluir manifestações da sua área (${currentAdminAreaName}), manifestações Gerais ou Reclamações.`);
+             return;
         }
 
-        api.del(`${base}/${id}`)
-            .then(() => {
-                setManifestacoes(prev => prev.filter(m => m.id !== id));
-                alert('Manifestação excluída com sucesso.');
-            })
-            .catch(async (err) => {
-                try {
-                    if (err && err.status === 401) {
-                        alert('Não autorizado. Faça login novamente.');
-                        return;
-                    }
-                    if (err && err.status === 403) {
-                        alert('Acesso negado: seu perfil não permite excluir esta manifestação.');
-                        return;
-                    }
-                    const body = await err.json();
-                    alert(body?.message || 'Erro ao excluir a manifestação.');
-                } catch {
-                    alert('Erro ao excluir a manifestação.');
-                }
-            });
+        if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {
+            const listaSemExcluida = manifestacoes.filter(m => m.id !== id);
+            
+            CrudService.updateManifestacoes(listaSemExcluida);
+            
+            setManifestacoes(listaSemExcluida);
+        }
     };
 
     const gerenciarManifestacao = (id) => {
@@ -219,41 +177,31 @@ function AdmMec() {
     };
 
     const salvarRespostaModal = (id, novoStatus, resposta) => {
-        const m = manifestacoes.find(x => x.id === id);
-        if (!m) {
-            alert('Manifestação não encontrada.');
+        const manifestacaoOriginal = manifestacoes.find(m => m.id === id);
+        
+        if (!canEditManifestacao(manifestacaoOriginal, currentAdminArea)) {
+            alert(`Erro: Você não pode editar manifestações que não são da sua área (${currentAdminAreaName}), manifestações Gerais ou Reclamações.`);
             return;
         }
-        const tipoNorm = normalizeString(m.tipo);
-        // Pelo SecurityConfig, apenas PUT em /reclamacoes/** está liberado (ADMIN, MANUTENCAO, ALUNO, FUNCIONARIO)
-        if (tipoNorm === 'reclamacao' || tipoNorm === 'reclamação') {
-            api.put(`/reclamacoes/${id}`, { status: novoStatus, respostaAdmin: resposta })
-                .then(() => {
-                    // Atualiza localmente para refletir no UI
-                    setManifestacoes(prev => prev.map(item => item.id === id ? { ...item, status: novoStatus, respostaAdmin: resposta } : item));
-                    fecharModal();
-                    alert('Reclamação atualizada com sucesso.');
-                })
-                .catch(async (err) => {
-                    try {
-                        if (err && err.status === 401) {
-                            alert('Não autorizado. Faça login novamente.');
-                            return;
-                        }
-                        if (err && err.status === 403) {
-                            alert('Acesso negado: seu perfil não permite atualizar reclamações.');
-                            return;
-                        }
-                        const body = await err.json();
-                        alert(body?.message || 'Erro ao atualizar a reclamação.');
-                    } catch {
-                        alert('Erro ao atualizar a reclamação.');
-                    }
-                });
-            return;
-        }
-        alert('Atualização via API disponível apenas para Reclamação neste momento.');
-        fecharModal();
+
+        const manifestacaoEditada = {
+            ...manifestacaoOriginal,
+            status: novoStatus,
+            respostaAdmin: resposta,
+            dataResposta: new Date().toLocaleDateString('pt-BR')
+        };
+        
+        setManifestacoes(prevManifestacoes => {
+            const listaAtualizada = prevManifestacoes.map(m => 
+                m.id === manifestacaoEditada.id ? manifestacaoEditada : m
+            );
+            
+            CrudService.updateManifestacoes(listaAtualizada);
+            
+            return listaAtualizada;
+        });
+        
+        fecharModal(); 
     };
     
     const manifestacoesFiltradas = filtro === 'Todos'
@@ -262,7 +210,6 @@ function AdmMec() {
             normalizeString(m.tipo) === normalizeString(filtro)
         );
 
-    // Métrica: Manifestações Editáveis (Mecânica/Geral + Reclamações) para os cards
     const manifestacoesParaMetricas = manifestacoes.filter(m => canEditManifestacao(m, currentAdminArea));
     
     const totalGeral = manifestacoes.length; 
@@ -293,12 +240,10 @@ function AdmMec() {
         )
         : manifestacoesFiltradas.map((m) => {
             const podeEditar = canEditManifestacao(m, currentAdminArea); 
-            // A classe 'btn-visualizar-only' será estilizada como 'btn-gerenciar' no CSS
             const botaoGerenciarClasse = podeEditar ? 'btn-gerenciar' : 'btn-visualizar-only';
             const botaoGerenciarTexto = podeEditar ? 'Gerenciar' : 'Visualizar';
             const setorExibido = m.setor || 'N/A'; 
             
-            // Formata a data e hora para o padrão local (ex: DD/MM/AAAA HH:MM:SS)
             const dataCriacaoFormatada = m.dataCriacao 
                 ? new Date(m.dataCriacao).toLocaleString('pt-BR') 
                 : 'N/A';
@@ -336,7 +281,6 @@ function AdmMec() {
                                 },
                                 botaoGerenciarTexto
                             ),
-                            // Botão Excluir só aparece se PODE EDITAR
                             podeEditar && e(
                                 'button',
                                 {
@@ -356,7 +300,6 @@ function AdmMec() {
         'div',
         { className: 'admin-container' },
         [
-            // Passa o nome do admin
             e(AdminHeader, { 
                 key: 'header', 
                 navigate: navigate, 
@@ -448,7 +391,6 @@ function AdmMec() {
                 onClose: fecharModal,
                 onSaveResponse: salvarRespostaModal,
                 adminSetor: currentAdminArea, 
-                // A prop readOnly é crucial: se canEditManifestacao for FALSE, o modal abre como SOMENTE LEITURA.
                 readOnly: !canEditManifestacao(manifestacaoSelecionada, currentAdminArea)
             })
         ]

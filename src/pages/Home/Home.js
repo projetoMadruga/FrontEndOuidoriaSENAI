@@ -50,7 +50,7 @@ function Home() {
     setModalSenhaVisivel(true);
   }
 
-  // Ajuste para receber o usuário logado e decidir a navegação
+  
   function onLoginSuccess(usuario) {
     setModalLoginVisivel(false);
     setModalCadastroVisivel(false);
@@ -59,7 +59,7 @@ function Home() {
     if (destinoPosLogin) {
       navigate(destinoPosLogin);
     } else if (usuario && usuario.tipo) {
-      // Redireciona conforme tipo do usuário
+      
       switch (usuario.tipo) {
         case 'Administrador':
           navigate('/admin');
@@ -75,7 +75,7 @@ function Home() {
           break;
       }
     } else {
-      navigate('/denuncia'); // fallback genérico
+      navigate('/denuncia');
     }
   }
 

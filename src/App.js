@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-// Páginas de Conteúdo
 import Home from './pages/Home/Home';
 import Confirmacao from './pages/Confirmacao/Confirmacao';
 import Denuncia from './pages/Denuncia/Denuncia';
@@ -11,19 +9,19 @@ import Reclamacao from './pages/Reclamacao/Reclamacao';
 import Aluno from './pages/Aluno/Aluno';
 import Funcionario from './pages/Funcionario/Funcionario';
 
-// Páginas de Administração (Corrigidas: AdmAQV estava faltando)
+
 import Admin from './pages/Admin/Admin';
 import AdmInfo from './pages/AdmInfo/AdmInfo';
 import AdmMec from './pages/AdmMecan/AdmMec';
 import AdmFac from './pages/AdmFac/AdmFac'; 
 
-// Páginas de Usuários (Corrigidas: UsuariosAQV estava faltando)
+
 import UsuariosInfo from './pages/Usuarios/UsuariosInfo';
 import UsuariosMec from './pages/Usuarios/UsuariosMec';
 import UsuariosGeral from './pages/Usuarios/UsuariosGeral';
-import UsuariosFac from './pages/Usuarios/UsuariosFac.js'; // <-- IMPORTAÇÃO ADICIONADA
+import UsuariosFac from './pages/Usuarios/UsuariosFac.js';
 
-// Componentes Modais
+
 import ModalLogin from './Components/ModalLogin';
 import ModalCadastro from './Components/ModalCadastro';
 import ModalSenha from './Components/ModalSenha';
@@ -52,7 +50,7 @@ function App() {
         Routes,
         null,
 
-        // Rotas de Conteúdo Público
+        
         React.createElement(Route, {
           key: 'home',
           path: '/',
@@ -94,7 +92,7 @@ function App() {
           element: React.createElement(Funcionario)
         }),
 
-        // Rotas de Administração Geral
+        
         React.createElement(Route, {
           key: 'admin',
           path: '/admin',
@@ -106,7 +104,7 @@ function App() {
           element: React.createElement(UsuariosGeral)
         }),
 
-        // Rotas da Área de Informática
+       
         React.createElement(Route, {
           key: 'usuarios-info',
           path: '/admin/usuarios-info',
@@ -118,7 +116,7 @@ function App() {
           element: React.createElement(AdmInfo)
         }),
 
-        // Rotas da Área de Mecânica
+        
         React.createElement(Route, {
           key: 'usuarios-mec',
           path: '/admin/usuarios-mec',
@@ -143,7 +141,7 @@ function App() {
         })
       ),
 
-      // Modais
+      
       React.createElement(ModalLogin, {
         key: 'modal-login',
         isOpen: isLoginOpen,
