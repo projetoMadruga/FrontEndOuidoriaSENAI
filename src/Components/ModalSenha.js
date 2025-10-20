@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import "./Modal.css";
 import logosenai from "../assets/imagens/logosenai.png";
 import boneco from "../assets/imagens/boneco.png";
+import { api } from "../services/api";
 
 function ModalSenha({ isOpen, onClose }) {
   const [email, setEmail] = useState("");
   const [mensagemEnviada, setMensagemEnviada] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,21 +22,24 @@ function ModalSenha({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const handleSolicitacaoSenha = (e) => {
+  const handleSolicitacaoSenha = async (e) => {
     e.preventDefault();
-    
-    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
-    const usuarioExiste = usuarios.some((u) => u.email === email);
-
-    if (!usuarioExiste) {
-      alert("E-mail não cadastrado.");
-      return;
+    setError("");
+    setLoading(true);
+    try {
+      await api.post("/login/recuperar-senha", { emailEducacional: email });
+      setMensagemEnviada(true);
+      setEmail("");
+    } catch (err) {
+      console.error("Erro ao solicitar recuperação de senha:", err);
+      if (err && err.status === 400) {
+        setError("E-mail inválido ou não cadastrado.");
+      } else {
+        setError("Não foi possível enviar a solicitação. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
     }
-
-    console.log(`Simulando envio de e-mail de redefinição para: ${email}`);
-    
-    setEmail("");
-    setMensagemEnviada(true);
   };
 
   return React.createElement(
@@ -74,8 +80,9 @@ function ModalSenha({ isOpen, onClose }) {
                 required: true,
               })
             ),
+            error && React.createElement("div", { className: "error-message", style: { color: "red", marginBottom: "10px", textAlign: "center" } }, error),
             
-            React.createElement("button", { type: "submit", className: "submit-btn" }, "Enviar Solicitação")
+            React.createElement("button", { type: "submit", className: "submit-btn", disabled: loading }, loading ? "Enviando..." : "Enviar Solicitação")
           )
     )
   );

@@ -143,9 +143,9 @@ function UsuariosFac() {
             console.error('Erro ao parse do localStorage (usuarioLogado):', e);
         }
 
-        const ADMIN_EMAIL = 'viera@senai.br';
+        const ADMIN_EMAILS = ['vieira@senai.br', 'vieira@docente.senai.br'];
 
-        if (!usuario || usuario.email !== ADMIN_EMAIL) {
+        if (!usuario || !ADMIN_EMAILS.includes(usuario.email)) {
             alert('Você precisa estar logado como administrador da faculdade para acessar esta página.');
             navigate('/');
             return;
@@ -158,7 +158,7 @@ function UsuariosFac() {
             const cursoNormalizado = normalizeString(u.curso);
             const isAreaInfo = cursoNormalizado === 'faculdade' || cursoNormalizado === 'fac'; 
             
-            const isNotAdmin = u.email !== ADMIN_EMAIL; 
+            const isNotAdmin = !ADMIN_EMAILS.includes(u.email); 
 
             return isAreaInfo && isNotAdmin;
         });

@@ -16,12 +16,12 @@ function ModalLogin({ isOpen, onClose, onCadastro, onEsqueciSenha }) {
   if (!isOpen) return null;
 
   const redirecionarPorEmail = (email) => {
-    if (email === "pino@senai.br") return navigate("/admin/adm-mec");
-    if (email === "chile@senai.br") return navigate("/admin/adm-info");
+    if (email === "pino@docente.senai.br" || email === "pino@senai.br") return navigate("/admin/adm-mec");
+    if (email === "chile@docente.senai.br" || email === "chile@senai.br") return navigate("/admin/adm-info");
     if (email === "diretor@senai.br") return navigate("/admin");
-    if (email === "viera@senai.br") return navigate("/admin/adm-fac");
+    if (email === "vieira@docente.senai.br" || email === "vieira@senai.br") return navigate("/admin/adm-fac");
     if (email.endsWith("@aluno.senai.br")) return navigate("/aluno");
-    if (email.endsWith("@senai.br")) return navigate("/funcionario");
+    if (email.endsWith("@senai.br") || email.endsWith("@docente.senai.br")) return navigate("/funcionario");
     alert("E-mail não autorizado.");
   };
 

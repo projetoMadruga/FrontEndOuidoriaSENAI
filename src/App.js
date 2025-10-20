@@ -20,6 +20,7 @@ import UsuariosInfo from './pages/Usuarios/UsuariosInfo';
 import UsuariosMec from './pages/Usuarios/UsuariosMec';
 import UsuariosGeral from './pages/Usuarios/UsuariosGeral';
 import UsuariosFac from './pages/Usuarios/UsuariosFac.js';
+import ResetSenha from './pages/ResetSenha/ResetSenha';
 
 
 import ModalLogin from './Components/ModalLogin';
@@ -138,6 +139,11 @@ function App() {
           key: 'usuarios-fac', 
           path: '/admin/usuarios-fac',
           element: React.createElement(UsuariosFac)
+        }),
+        React.createElement(Route, {
+          key: 'reset-senha',
+          path: '/redefinir-senha',
+          element: React.createElement(ResetSenha)
         })
       ),
 

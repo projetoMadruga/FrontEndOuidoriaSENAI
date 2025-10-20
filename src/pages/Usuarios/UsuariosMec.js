@@ -131,7 +131,7 @@ function UsuariosMec() {
     const [filtroTipo, setFiltroTipo] = useState('Todos');
     const [modalUsuario, setModalUsuario] = useState(null); 
 
-    const ADMIN_EMAIL = 'pino@senai.br';
+    const ADMIN_EMAILS = ['pino@senai.br', 'pino@docente.senai.br'];
 
     useEffect(() => {
         let usuario = null;
@@ -145,7 +145,7 @@ function UsuariosMec() {
             console.error('Erro ao parse do localStorage (usuarioLogado):', e);
         }
 
-        if (!usuario || usuario.email !== ADMIN_EMAIL) {
+        if (!usuario || !ADMIN_EMAILS.includes(usuario.email)) {
             alert('Você precisa estar logado como administrador de mecânica para acessar esta página.');
             navigate('/');
             return;
@@ -158,7 +158,7 @@ function UsuariosMec() {
             const cursoNormalizado = normalizeString(u.curso);
             const isAreaMec = cursoNormalizado === 'mecanica'; 
             
-            const isNotAdmin = u.email !== ADMIN_EMAIL; 
+            const isNotAdmin = !ADMIN_EMAILS.includes(u.email);
 
             return isAreaMec && isNotAdmin;
         });

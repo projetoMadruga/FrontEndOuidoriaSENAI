@@ -11,8 +11,11 @@ const { createElement: e } = React;
 const ADMIN_MAPPING = {
     'diretor@senai.br': 'Geral',
     'chile@senai.br': 'Informática',
+    'chile@docente.senai.br': 'Informática',
     'pino@senai.br': 'Mecânica',
-    'viera@senai.br': 'Faculdade'
+    'pino@docente.senai.br': 'Mecânica',
+    'vieira@senai.br': 'Faculdade',
+    'vieira@docente.senai.br': 'Faculdade'
 };
 
 const normalizeString = (str) => {

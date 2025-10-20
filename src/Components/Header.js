@@ -29,6 +29,19 @@ function Header() {
     
     const [nomeExibicao, setNomeExibicao] = useState(getNomeUsuarioLogado());
 
+    function handleLogout() {
+        try {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('usuarioLogado');
+        } catch (e) {
+            console.error('Erro ao limpar credenciais do usuário:', e);
+        }
+        setNomeExibicao(null);
+        setModalAberto('');
+        navigate('/');
+    }
+
     
     useEffect(() => {
         
@@ -81,13 +94,13 @@ function Header() {
                 if (!email) return navigate('/');
     
                 
-                if (email === "pino@senai.br") return navigate("/admin/adm-mec");
-                if (email === "chile@senai.br") return navigate("/admin/adm-info");
+                if (email === "pino@docente.senai.br" || email === "pino@senai.br") return navigate("/admin/adm-mec");
+                if (email === "chile@docente.senai.br" || email === "chile@senai.br") return navigate("/admin/adm-info");
                 if (email === "diretor@senai.br") return navigate("/admin");
-                if (email === "viera@senai.br") return navigate("/admin/adm-fac");
+                if (email === "vieira@docente.senai.br" || email === "vieira@senai.br") return navigate("/admin/adm-fac");
                 
                 if (email.endsWith("@aluno.senai.br")) return navigate("/aluno");
-                if (email.endsWith("@senai.br")) return navigate("/funcionario");
+                if (email.endsWith("@senai.br") || email.endsWith("@docente.senai.br")) return navigate("/funcionario");
                 
                 navigate('/'); 
     
@@ -134,6 +147,17 @@ function Header() {
                     </span>
                     
                 </button>
+
+                {nomeExibicao && (
+                    <button
+                        className="usuario"
+                        type="button"
+                        onClick={handleLogout}
+                        style={{ marginLeft: '8px' }}
+                    >
+                        Sair
+                    </button>
+                )}
             </header>
 
            
