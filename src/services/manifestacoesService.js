@@ -1,158 +1,205 @@
-import { api } from "./api";
+import { api } from './api';
 
-/**
- * Serviço para gerenciar manifestações (Reclamações, Denúncias, Elogios, Sugestões)
- * Integrado com o back-end Azure
- */
-
-const manifestacoesService = {
-  // ==================== RECLAMAÇÕES ====================
-  
-  async criarReclamacao(dados) {
-    const payload = {
-      dataHora: dados.dataHora,
-      local: dados.local,
-      descricaoDetalhada: dados.descricaoDetalhada,
-      tipoReclamacao: dados.tipoReclamacao || "GERAL", // GERAL, INFORMATICA, MECANICA, FACULDADE
-      caminhoAnexo: dados.caminhoAnexo || null
-    };
-    
-    return await api.post("/reclamacoes", payload);
-  },
-
-  async listarReclamacoes() {
-    return await api.get("/reclamacoes");
-  },
-
-  async buscarReclamacao(id) {
-    return await api.get(`/reclamacoes/${id}`);
-  },
-
-  async atualizarReclamacao(id, dados) {
-    return await api.put(`/reclamacoes/${id}`, dados);
-  },
-
-  async deletarReclamacao(id) {
-    return await api.del(`/reclamacoes/${id}`);
-  },
-
-  async atualizarStatusReclamacao(id, status, observacao) {
-    return await api.patch(`/reclamacoes/${id}/status`, null, {
-      params: { status, observacao }
-    });
-  },
-
-  // ==================== DENÚNCIAS ====================
-  
-  async criarDenuncia(dados) {
-    const payload = {
-      local: dados.local,
-      dataHora: dados.dataHora,
-      descricaoDetalhada: dados.descricaoDetalhada,
-      caminhoAnexo: dados.caminhoAnexo || null
-    };
-    
-    return await api.post("/denuncias", payload);
-  },
-
-  async listarDenuncias() {
-    return await api.get("/denuncias");
-  },
-
-  async buscarDenuncia(id) {
-    return await api.get(`/denuncias/${id}`);
-  },
-
-  async atualizarDenuncia(id, dados) {
-    return await api.put(`/denuncias/${id}`, dados);
-  },
-
-  async deletarDenuncia(id) {
-    return await api.del(`/denuncias/${id}`);
-  },
-
-  // ==================== ELOGIOS ====================
-  
-  async criarElogio(dados) {
-    const payload = {
-      local: dados.local,
-      dataHora: dados.dataHora,
-      descricaoDetalhada: dados.descricaoDetalhada,
-      caminhoAnexo: dados.caminhoAnexo || null
-    };
-    
-    return await api.post("/elogios", payload);
-  },
-
-  async listarElogios() {
-    return await api.get("/elogios");
-  },
-
-  async buscarElogio(id) {
-    return await api.get(`/elogios/${id}`);
-  },
-
-  async atualizarElogio(id, dados) {
-    return await api.put(`/elogios/${id}`, dados);
-  },
-
-  async deletarElogio(id) {
-    return await api.del(`/elogios/${id}`);
-  },
-
-  // ==================== SUGESTÕES ====================
-  
-  async criarSugestao(dados) {
-    const payload = {
-      local: dados.local,
-      dataHora: dados.dataHora,
-      descricaoDetalhada: dados.descricaoDetalhada,
-      caminhoAnexo: dados.caminhoAnexo || null
-    };
-    
-    return await api.post("/sugestoes", payload);
-  },
-
-  async listarSugestoes() {
-    return await api.get("/sugestoes");
-  },
-
-  async buscarSugestao(id) {
-    return await api.get(`/sugestoes/${id}`);
-  },
-
-  async atualizarSugestao(id, dados) {
-    return await api.put(`/sugestoes/${id}`, dados);
-  },
-
-  async deletarSugestao(id) {
-    return await api.del(`/sugestoes/${id}`);
-  },
-
-  // ==================== HELPERS ====================
-  
-  /**
-   * Mapeia o setor do front-end para o enum do back-end
-   * Enum aceito: MANUTENCAO, ADMINISTRACAO
-   */
-  mapearSetor(setor) {
-    const mapeamento = {
-      "Geral": "ADMINISTRACAO",
-      "Informatica": "MANUTENCAO",
-      "Mecanica": "MANUTENCAO",
-      "Faculdade": "ADMINISTRACAO"
-    };
-    return mapeamento[setor] || "ADMINISTRACAO";
-  },
-
-  /**
-   * Formata data e hora para o formato esperado pelo back-end
-   */
-  formatarDataHora(dataHoraLocal) {
-    // Converte de datetime-local (YYYY-MM-DDTHH:mm) para o formato do back-end
-    if (!dataHoraLocal) return new Date().toISOString();
-    return new Date(dataHoraLocal).toISOString();
-  }
+// Função para construir URL (copiada do api.js)
+const buildUrl = (path) => {
+  const API_BASE = process.env.REACT_APP_API_BASE || "";
+  if (!API_BASE) return path; // fallback for local dev
+  if (path.startsWith("http")) return path;
+  const base = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${p}`;
 };
 
-export default manifestacoesService;
+export const manifestacoesService = {
+  /**
+   * Busca todas as manifestações do usuário logado ou todas se for admin
+   */
+  async listarManifestacoes() {
+    try {
+      const response = await fetch(buildUrl("/manifestacoes"), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Erro ao buscar manifestações:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Busca manifestações por tipo (apenas para admins)
+   */
+  async listarManifestacoesPorTipo(tipo) {
+    try {
+      const response = await fetch(buildUrl(`/manifestacoes/tipo/${tipo}`), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`Erro ao buscar manifestações do tipo ${tipo}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Busca uma manifestação específica por ID
+   */
+  async buscarManifestacaoPorId(id) {
+    try {
+      const response = await fetch(buildUrl(`/manifestacoes/${id}`), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`Erro ao buscar manifestação ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Busca todos os usuários (apenas para admins)
+   */
+  async listarUsuarios() {
+    try {
+      const response = await fetch(buildUrl("/login/usuarios"), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Formata o status para exibição
+   */
+  formatarStatus(status) {
+    const statusMap = {
+      'PENDENTE': 'Em Análise',
+      'EM_ANALISE': 'Em Análise',
+      'RESOLVIDA': 'Finalizada',
+      'FINALIZADA': 'Finalizada',
+      'CANCELADA': 'Cancelada'
+    };
+    return statusMap[status] || status;
+  },
+
+  /**
+   * Formata o tipo para exibição
+   */
+  formatarTipo(tipo) {
+    const tipoMap = {
+      'RECLAMACAO': 'Reclamação',
+      'DENUNCIA': 'Denúncia',
+      'ELOGIO': 'Elogio',
+      'SUGESTAO': 'Sugestão'
+    };
+    return tipoMap[tipo] || tipo;
+  },
+
+  /**
+   * Formata a data para exibição
+   */
+  formatarData(dataHora) {
+    if (!dataHora) return 'Data não informada';
+    
+    try {
+      const data = new Date(dataHora);
+      return data.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return dataHora;
+    }
+  },
+
+  /**
+   * Atualiza uma manifestação (apenas para admins)
+   */
+  async atualizarManifestacao(id, dadosAtualizados) {
+    try {
+      const response = await fetch(buildUrl(`/manifestacoes/${id}`), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        },
+        body: JSON.stringify(dadosAtualizados)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`Erro ao atualizar manifestação ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Deleta uma manifestação (apenas para admins)
+   */
+  async deletarManifestacao(id) {
+    try {
+      const response = await fetch(buildUrl(`/manifestacoes/${id}`), {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return true; // Sucesso
+    } catch (error) {
+      console.error(`Erro ao deletar manifestação ${id}:`, error);
+      throw error;
+    }
+  }
+};

@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 
+// Função para construir URL (copiada do api.js)
+const buildUrl = (path) => {
+  const API_BASE = process.env.REACT_APP_API_BASE || "";
+  if (!API_BASE) return path; // fallback for local dev
+  if (path.startsWith("http")) return path;
+  const base = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${p}`;
+};
+
 const { createElement: e } = React;
 
 function ResetSenha() {
@@ -16,6 +26,7 @@ function ResetSenha() {
 
     useEffect(() => {
         const t = searchParams.get('token') || '';
+        console.log('Token capturado da URL:', t);
         setToken(t);
     }, [searchParams]);
 
@@ -37,16 +48,39 @@ function ResetSenha() {
 
         setLoading(true);
         try {
-            await api.post('/login/redefinir-senha', { token, novaSenha });
-            setSuccess(true);
-            setTimeout(() => navigate('/'), 1800);
-        } catch (err) {
-            console.error('Erro ao redefinir senha:', err);
-            if (err && err.status === 400) {
-                setError('Token inválido/expirado ou senha fraca.');
+            console.log('Enviando payload:', { token, novaSenha });
+            const response = await fetch(buildUrl('/login/redefinir-senha'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token, novaSenha })
+            });
+
+            console.log('Resposta do servidor:', response.status, response.statusText);
+
+            if (response.ok) {
+                const responseText = await response.text();
+                console.log('Senha redefinida com sucesso:', responseText);
+                setSuccess(true);
+                setError(''); // Limpa qualquer erro anterior
+                setTimeout(() => navigate('/'), 3000);
             } else {
-                setError('Falha ao redefinir senha. Tente novamente.');
+                // Tratar erro
+                const errorText = await response.text();
+                console.error('Erro ao redefinir senha:', response.status, errorText);
+                
+                if (response.status === 400) {
+                    setError(errorText || 'Token inválido/expirado ou senha fraca.');
+                } else if (response.status === 500) {
+                    setError('Erro interno do servidor. Tente novamente mais tarde.');
+                } else {
+                    setError('Falha ao redefinir senha. Verifique sua conexão e tente novamente.');
+                }
             }
+        } catch (err) {
+            console.error('Erro de rede ao redefinir senha:', err);
+            setError('Erro de conexão. Verifique sua internet e tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -55,7 +89,11 @@ function ResetSenha() {
     return e('div', { className: 'reset-senha-container', style: { maxWidth: 420, margin: '40px auto', padding: 16 } }, [
         e('h2', { key: 'title' }, 'Redefinir Senha'),
         success
-            ? e('div', { key: 'ok', style: { color: 'green', marginTop: 12 } }, 'Senha redefinida com sucesso! Redirecionando...')
+            ? e('div', { key: 'ok', style: { color: 'green', marginTop: 12, textAlign: 'center' } }, [
+                e('h3', { key: 'success-title' }, '✅ Senha Redefinida com Sucesso!'),
+                e('p', { key: 'success-msg1' }, 'Sua senha foi alterada com sucesso.'),
+                e('p', { key: 'success-msg2' }, 'Redirecionando para a página inicial...')
+            ])
             : e('form', { key: 'form', onSubmit: handleSubmit }, [
                 e('div', { key: 'senha', style: { marginBottom: 12 } }, [
                     e('label', { htmlFor: 'novaSenha' }, 'Nova senha'),
@@ -82,7 +120,7 @@ function ResetSenha() {
                     })
                 ]),
                 error && e('div', { key: 'err', style: { color: 'red', margin: '8px 0' } }, error),
-                e('button', { key: 'submit', type: 'submit', disabled: loading, style: { width: '100%', padding: 10 } }, loading ? 'Redefinindo...' : 'Redefinir senha')
+                e('button', { key: 'submit', type: 'submit', disabled: loading, style: { width: '100%', padding: 10 } }, loading ? '🔄 Redefinindo senha...' : 'Redefinir senha')
             ])
     ]);
 }

@@ -4,6 +4,16 @@ import { api } from "../../services/api";
 import "./RedefinirSenha.css";
 import logosenai from "../../assets/imagens/logosenai.png";
 
+// Função para construir URL (copiada do api.js)
+const buildUrl = (path) => {
+  const API_BASE = process.env.REACT_APP_API_BASE || "";
+  if (!API_BASE) return path; // fallback for local dev
+  if (path.startsWith("http")) return path;
+  const base = API_BASE.endsWith("/") ? API_BASE.slice(0, -1) : API_BASE;
+  const p = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${p}`;
+};
+
 function RedefinirSenha() {
   const [searchParams] = useSearchParams();
   const [novaSenha, setNovaSenha] = useState("");
@@ -41,27 +51,45 @@ function RedefinirSenha() {
     setLoading(true);
 
     try {
-      const response = await api.post("/login/redefinir-senha", {
-        token: token,
-        novaSenha: novaSenha
+      const response = await fetch(buildUrl("/login/redefinir-senha"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: token,
+          novaSenha: novaSenha
+        })
       });
 
-      console.log("Senha redefinida com sucesso:", response);
-      setSucesso(true);
+      console.log("Resposta do servidor:", response.status, response.statusText);
 
-      // Redireciona para home após 3 segundos
-      setTimeout(() => {
-        navigate("/");
-      }, 3000);
-    } catch (error) {
-      console.error("Erro ao redefinir senha:", error);
+      if (response.ok) {
+        const responseText = await response.text();
+        console.log("Senha redefinida com sucesso:", responseText);
+        setSucesso(true);
+        setErro(""); // Limpa qualquer erro anterior
 
-      if (error.status === 400) {
-        const errorText = await error.text();
-        setErro(errorText || "Token inválido ou expirado.");
+        // Redireciona para home após 3 segundos
+        setTimeout(() => {
+          navigate("/");
+        }, 3000);
       } else {
-        setErro("Erro ao redefinir senha. Tente novamente mais tarde.");
+        // Tratar erro
+        const errorText = await response.text();
+        console.error("Erro ao redefinir senha:", response.status, errorText);
+        
+        if (response.status === 400) {
+          setErro(errorText || "Token inválido ou expirado.");
+        } else if (response.status === 500) {
+          setErro("Erro interno do servidor. Tente novamente mais tarde.");
+        } else {
+          setErro("Erro ao redefinir senha. Verifique sua conexão e tente novamente.");
+        }
       }
+    } catch (error) {
+      console.error("Erro de rede ao redefinir senha:", error);
+      setErro("Erro de conexão. Verifique sua internet e tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -89,10 +117,16 @@ function RedefinirSenha() {
         <div className="redefinir-senha-card">
           <img src={logosenai} alt="Logo SENAI" className="logo-senai" />
           <div className="linha-vermelha"></div>
-          <h2>Senha Redefinida!</h2>
+          <h2>✅ Senha Redefinida com Sucesso!</h2>
           <p className="sucesso-mensagem">
-            Sua senha foi redefinida com sucesso. Você será redirecionado para a página inicial...
+            Sua senha foi alterada com sucesso. Agora você pode fazer login com sua nova senha.
           </p>
+          <p className="sucesso-mensagem">
+            Você será redirecionado para a página inicial em alguns segundos...
+          </p>
+          <button onClick={() => navigate("/")} className="btn-voltar">
+            Ir para Login
+          </button>
         </div>
       </div>
     );
@@ -138,7 +172,7 @@ function RedefinirSenha() {
           {erro && <p className="erro-mensagem">{erro}</p>}
 
           <button type="submit" className="btn-redefinir" disabled={loading}>
-            {loading ? "Redefinindo..." : "Redefinir Senha"}
+            {loading ? "🔄 Redefinindo senha..." : "Redefinir Senha"}
           </button>
         </form>
 

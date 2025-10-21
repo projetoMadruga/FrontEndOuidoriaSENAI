@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "../../Components/Footer";
 import CrudService from "../../services/CrudService";
+import { manifestacoesService } from "../../services/manifestacoesService";
 import "./Funcionario.css"; 
 
 import SenaiLogo from '../../assets/imagens/logosenai.png';
@@ -149,35 +150,59 @@ function Funcionario() {
     };
 
    
-    const carregarManifestacoes = (usuario) => {
-        if (!usuario || !usuario.email) {
-            setManifestacoes([]);
-            return;
-        }
-        
-        const STATUS = CrudService.STATUS_MANIFESTACAO;
-        const TIPOS = CrudService.TIPOS_MANIFESTACAO;
-        
-     
-        let dados = CrudService.getByEmail(usuario.email) || [];
+    const carregarManifestacoes = async (usuario) => {
+        if (!usuario || !usuario.email) {
+            setManifestacoes([]);
+            return;
+        }
 
-       
-        if (STATUS && TIPOS && dados.length === 0) { 
-            
-            if (usuario.email === 'funcionario@senai.br') {
-                dados = [
-                    {
-                        id: '2024001',
-                        tipo: TIPOS.SUGESTAO,
-                        dataCriacao: '2025-10-01T14:30:00.000Z',
-                        status: STATUS.PENDENTE, 
-                        descricao: 'Sugestão de melhoria para o refeitório.', 
-                        respostaAdmin: null,
-                        localIncidente: 'Refeitório Principal', 
-                        usuarioEmail: 'funcionario@senai.br', 
-                        visibilidade: 'admin',
-                        contato: 'funcionario@senai.br'
-                    },
+        try {
+            // Tenta buscar do backend primeiro
+            const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
+            
+            // Converte para o formato esperado pelo frontend
+            const manifestacoesFormatadas = manifestacoesBackend.map(m => ({
+                id: m.id.toString(),
+                tipo: manifestacoesService.formatarTipo(m.tipo),
+                dataCriacao: m.dataHora,
+                status: manifestacoesService.formatarStatus(m.status),
+                descricao: m.descricaoDetalhada,
+                respostaAdmin: m.observacao || '',
+                localIncidente: m.local,
+                usuarioEmail: m.emailUsuario,
+                contacto: m.emailUsuario
+            }));
+
+            // Ordena por data de criação (mais recente primeiro)
+            const manifestacoesOrdenadas = manifestacoesFormatadas.sort((a, b) => 
+                new Date(b.dataCriacao) - new Date(a.dataCriacao)
+            );
+
+            setManifestacoes(manifestacoesOrdenadas);
+        } catch (error) {
+            console.error("Erro ao carregar manifestações do backend:", error);
+            
+            // Fallback para localStorage se o backend falhar
+            const STATUS = CrudService.STATUS_MANIFESTACAO;
+            const TIPOS = CrudService.TIPOS_MANIFESTACAO;
+            
+            let dados = CrudService.getByEmail(usuario.email) || [];
+
+            if (STATUS && TIPOS && dados.length === 0) { 
+                if (usuario.email === 'funcionario@senai.br') {
+                    dados = [
+                        {
+                            id: '2024001',
+                            tipo: TIPOS.SUGESTAO,
+                            dataCriacao: '2025-10-01T14:30:00.000Z',
+                            status: STATUS.PENDENTE, 
+                            descricao: 'Sugestão de melhoria para o refeitório.', 
+                            respostaAdmin: null,
+                            localIncidente: 'Refeitório Principal', 
+                            usuarioEmail: 'funcionario@senai.br', 
+                            visibilidade: 'admin',
+                            contato: 'funcionario@senai.br'
+                        },
                     {
                         id: '2024002',
                         tipo: TIPOS.ELOGIO,
@@ -192,13 +217,12 @@ function Funcionario() {
                     }
                 ];
             }
-        }
+        }
 
-       
-        const manifestacoesOrdenadas = dados.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
-    
-        setManifestacoes(manifestacoesOrdenadas);
-    };
+        const manifestacoesOrdenadas = dados.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
+        setManifestacoes(manifestacoesOrdenadas);
+        }
+    };
 
     useEffect(() => {
         const storedUser = localStorage.getItem("usuarioLogado");

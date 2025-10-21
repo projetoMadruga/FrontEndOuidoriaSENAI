@@ -12,6 +12,7 @@ function ModalCadastro({ isOpen, onClose }) {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState(""); 
   const [cpf, setCpf] = useState("");     
+  const [curso, setCurso] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ function ModalCadastro({ isOpen, onClose }) {
       }
 
       // Armazena dados do usuário
-      localStorage.setItem("usuarioLogado", JSON.stringify({ email, nome }));
+      localStorage.setItem("usuarioLogado", JSON.stringify({ email, nome, curso }));
 
       alert("Cadastro realizado com sucesso!");
       redirecionarPorEmail(email);
@@ -73,6 +74,7 @@ function ModalCadastro({ isOpen, onClose }) {
       setSenha(""); 
       setTelefone(""); 
       setCpf(""); 
+      setCurso("");
       onClose();
     } catch (err) {
       console.error("Erro no cadastro:", err);
@@ -158,6 +160,24 @@ function ModalCadastro({ isOpen, onClose }) {
             onChange: (e) => setEmail(e.target.value),
             required: true,
           })
+        ),
+        email.endsWith("@aluno.senai.br") && React.createElement(
+          "div",
+          { className: "input-icon-container" },
+          React.createElement("img", { src: boneco, alt: "curso" }),
+          React.createElement("select", {
+            value: curso,
+            onChange: (e) => setCurso(e.target.value),
+            required: email.endsWith("@aluno.senai.br"),
+            style: { width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }
+          }, [
+            React.createElement("option", { key: "default", value: "" }, "Selecione seu curso"),
+            React.createElement("option", { key: "ads", value: "ADS" }, "Análise e Desenvolvimento de Sistemas"),
+            React.createElement("option", { key: "redes", value: "Redes" }, "Redes de Computadores"),
+            React.createElement("option", { key: "mecanica", value: "Mecânica" }, "Mecânica"),
+            React.createElement("option", { key: "manufatura", value: "Manufatura Digital" }, "Manufatura Digital"),
+            React.createElement("option", { key: "faculdade", value: "Faculdade" }, "Faculdade SENAI")
+          ])
         ),
         React.createElement(
           "div",

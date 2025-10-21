@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../../Components/Footer'; 
 import logoSenai from '../../assets/imagens/logosenai.png'; 
+import { manifestacoesService } from '../../services/manifestacoesService';
 import './UsuariosGeral.css';
 
 const { createElement: e } = React;
@@ -153,20 +154,47 @@ function UsuariosGeral() {
             return;
         }
 
-        const todosUsuarios = CrudServiceSimulado.getAllUsers();
-
-        const usuariosFiltrados = todosUsuarios.filter(u => {
-            
-            const isNotAdmin = u.email !== ADMIN_EMAIL; 
-            
-            const isNotAdminToExclude = !ADMINS_A_EXCLUIR.includes(u.email);
-
-            return isNotAdmin && isNotAdminToExclude;
-        });
-        
-        setUsuarios(usuariosFiltrados);
+        // Carrega usuários do backend
+        carregarUsuariosDoBackend();
         
     }, [navigate]);
+
+    const carregarUsuariosDoBackend = async () => {
+        try {
+            // Busca todos os usuários do backend
+            const usuariosBackend = await manifestacoesService.listarUsuarios();
+            
+            // Converte para o formato esperado pelo frontend
+            const usuariosFormatados = usuariosBackend.map(u => ({
+                id: u.id.toString(),
+                nome: u.nome || 'Nome não informado',
+                email: u.emailEducacional,
+                tipo: u.cargoUsuario || 'USUARIO',
+                dataCadastro: new Date().toISOString(), // Data atual como fallback
+                ativo: true
+            }));
+
+            // Filtra usuários (exclui admins)
+            const usuariosFiltrados = usuariosFormatados.filter(u => {
+                const isNotAdmin = u.email !== ADMIN_EMAIL;
+                const isNotAdminToExclude = !ADMINS_A_EXCLUIR.includes(u.email);
+                return isNotAdmin && isNotAdminToExclude;
+            });
+            
+            setUsuarios(usuariosFiltrados);
+        } catch (error) {
+            console.error("Erro ao carregar usuários do backend:", error);
+            
+            // Fallback para dados simulados se o backend falhar
+            const todosUsuarios = CrudServiceSimulado.getAllUsers();
+            const usuariosFiltrados = todosUsuarios.filter(u => {
+                const isNotAdmin = u.email !== ADMIN_EMAIL; 
+                const isNotAdminToExclude = !ADMINS_A_EXCLUIR.includes(u.email);
+                return isNotAdmin && isNotAdminToExclude;
+            });
+            setUsuarios(usuariosFiltrados);
+        }
+    };
 
     const filtrarPorTipo = (lista, tipo) => {
         if (tipo === 'Todos') return lista;

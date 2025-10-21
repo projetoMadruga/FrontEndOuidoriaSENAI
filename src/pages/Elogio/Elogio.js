@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import manifestacoesService from '../../services/manifestacoesService';
+import { manifestacoesService } from '../../services/manifestacoesService';
 
 import '../Elogio/Elogio.css'; 
 import Footer from '../../Components/Footer';

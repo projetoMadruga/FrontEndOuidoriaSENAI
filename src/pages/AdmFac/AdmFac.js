@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Footer from '../../Components/Footer'; 
 import SenaiLogo from '../../assets/imagens/logosenai.png'; 
 import ModalGerenciar from '../../Components/ModalGerenciar'; 
+import { manifestacoesService } from '../../services/manifestacoesService';
 import './AdmFac.css';
 
 
@@ -206,23 +207,28 @@ function AdmFac() {
         });
     };
 
-    const excluirManifestacao = (id) => {
+    const excluirManifestacao = async (id) => {
         const manifestacao = manifestacoes.find(m => m.id === id);
 
-        
         if (!manifestacao || !canEditManifestacao(manifestacao, currentAdminAreaName)) {
             alert(`Você só pode excluir manifestações da sua área (${currentAdminAreaName}) ou manifestações Gerais.`);
             return;
         }
         
         if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {
-            const listaSemExcluida = manifestacoes.filter(m => m.id !== id);
-            
-            
-            const dataToSave = listaSemExcluida.map(({ id, ...rest }) => rest);
-            localStorage.setItem('manifestacoes', JSON.stringify(dataToSave));
-            
-            setManifestacoes(listaSemExcluida);
+            try {
+                // Deleta do backend
+                await manifestacoesService.deletarManifestacao(id);
+                
+                // Atualiza a lista local
+                const listaSemExcluida = manifestacoes.filter(m => m.id !== id);
+                setManifestacoes(listaSemExcluida);
+                
+                alert('Manifestação excluída com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir manifestação:', error);
+                alert('Erro ao excluir manifestação. Tente novamente.');
+            }
         }
     };
 
@@ -238,24 +244,42 @@ function AdmFac() {
         setManifestacaoSelecionada(null);
     };
 
-    const salvarRespostaModal = (id, novoStatus, resposta) => {
+    const salvarRespostaModal = async (id, novoStatus, resposta) => {
         const manifestacaoOriginal = manifestacoes.find(m => m.id === id);
         
-       
         if (!canEditManifestacao(manifestacaoOriginal, currentAdminAreaName)) {
             alert(`Erro: Você não pode editar manifestações que não são da sua área (${currentAdminAreaName}) ou manifestações Gerais.`);
             return;
         }
 
-        const manifestacaoEditada = {
-            ...manifestacaoOriginal,
-            status: novoStatus,
-            respostaAdmin: resposta,
-            dataResposta: new Date().toLocaleDateString('pt-BR')
-        };
-        
-        persistirManifestacoes(manifestacaoEditada); 
-        fecharModal(); 
+        try {
+            // Prepara os dados para atualização
+            const dadosAtualizados = {
+                ...manifestacaoOriginal,
+                status: novoStatus,
+                observacao: resposta,
+                dataHora: manifestacaoOriginal.dataCriacao // Mantém a data original
+            };
+
+            // Atualiza no backend
+            await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
+            
+            // Atualiza a lista local
+            const manifestacaoEditada = {
+                ...manifestacaoOriginal,
+                status: novoStatus,
+                respostaAdmin: resposta,
+                dataResposta: new Date().toLocaleDateString('pt-BR')
+            };
+            
+            persistirManifestacoes(manifestacaoEditada); 
+            fecharModal();
+            
+            alert('Manifestação atualizada com sucesso!');
+        } catch (error) {
+            console.error('Erro ao atualizar manifestação:', error);
+            alert('Erro ao atualizar manifestação. Tente novamente.');
+        }
     };
     
    

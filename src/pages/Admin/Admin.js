@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Footer from '../../Components/Footer';
 import SenaiLogo from '../../assets/imagens/logosenai.png';
 import ModalGerenciar from '../../Components/ModalGerenciar';
+import { manifestacoesService } from '../../services/manifestacoesService';
 import './Admin.css';
 
 const { createElement: e } = React;
@@ -110,11 +111,43 @@ function Admin() {
             return;
         }
 
-        const todasManifestacoes = ManifestacaoService.getAllManifestacoes();
-
-        setManifestacoes(todasManifestacoes);
+        // Carrega manifestações do backend
+        carregarManifestacoesDoBackend();
 
     }, [navigate]);
+
+    const carregarManifestacoesDoBackend = async () => {
+        try {
+            // Busca todas as manifestações do backend
+            const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
+            
+            // Converte para o formato esperado pelo frontend
+            const manifestacoesFormatadas = manifestacoesBackend.map(m => ({
+                id: m.id.toString(),
+                tipo: manifestacoesService.formatarTipo(m.tipo),
+                dataCriacao: m.dataHora,
+                status: manifestacoesService.formatarStatus(m.status),
+                descricao: m.descricaoDetalhada,
+                respostaAdmin: m.observacao || '',
+                localIncidente: m.local,
+                usuarioEmail: m.emailUsuario,
+                contacto: m.emailUsuario
+            }));
+
+            // Ordena por data de criação (mais recente primeiro)
+            const manifestacoesOrdenadas = manifestacoesFormatadas.sort((a, b) => 
+                new Date(b.dataCriacao) - new Date(a.dataCriacao)
+            );
+
+            setManifestacoes(manifestacoesOrdenadas);
+        } catch (error) {
+            console.error("Erro ao carregar manifestações do backend:", error);
+            
+            // Fallback para localStorage se o backend falhar
+            const todasManifestacoes = ManifestacaoService.getAllManifestacoes();
+            setManifestacoes(todasManifestacoes);
+        }
+    };
 
     const manifestacoesFiltradas = filtro === 'Todos'
         ? manifestacoes
@@ -122,12 +155,21 @@ function Admin() {
             normalizeString(m.tipo) === normalizeString(filtro)
         );
 
-    const excluirManifestacao = (id) => {
+    const excluirManifestacao = async (id) => {
         if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {
-            const listaAtualizada = manifestacoes.filter(m => m.id !== id);
-
-            setManifestacoes(listaAtualizada);
-            ManifestacaoService.updateManifestacoes(listaAtualizada);
+            try {
+                // Deleta do backend
+                await manifestacoesService.deletarManifestacao(id);
+                
+                // Atualiza a lista local
+                const listaAtualizada = manifestacoes.filter(m => m.id !== id);
+                setManifestacoes(listaAtualizada);
+                
+                alert('Manifestação excluída com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir manifestação:', error);
+                alert('Erro ao excluir manifestação. Tente novamente.');
+            }
         }
     };
 
@@ -140,23 +182,47 @@ function Admin() {
         setManifestacaoSelecionada(null);
     };
 
-    const salvarRespostaModal = (id, novoStatus, resposta) => {
-        const listaAtualizada = manifestacoes.map(m => {
-            if (m.id === id) {
-                return {
-                    ...m,
-                    status: novoStatus,
-                    respostaAdmin: resposta,
-                    dataResposta: new Date().toLocaleDateString('pt-BR')
-                };
+    const salvarRespostaModal = async (id, novoStatus, resposta) => {
+        try {
+            // Busca a manifestação atual
+            const manifestacaoAtual = manifestacoes.find(m => m.id === id);
+            if (!manifestacaoAtual) {
+                alert('Manifestação não encontrada.');
+                return;
             }
-            return m;
-        });
 
-        setManifestacoes(listaAtualizada);
-        ManifestacaoService.updateManifestacoes(listaAtualizada);
+            // Prepara os dados para atualização
+            const dadosAtualizados = {
+                ...manifestacaoAtual,
+                status: novoStatus,
+                observacao: resposta,
+                dataHora: manifestacaoAtual.dataCriacao // Mantém a data original
+            };
 
-        fecharModal();
+            // Atualiza no backend
+            const manifestacaoAtualizada = await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
+            
+            // Atualiza a lista local
+            const listaAtualizada = manifestacoes.map(m => {
+                if (m.id === id) {
+                    return {
+                        ...m,
+                        status: novoStatus,
+                        respostaAdmin: resposta,
+                        dataResposta: new Date().toLocaleDateString('pt-BR')
+                    };
+                }
+                return m;
+            });
+
+            setManifestacoes(listaAtualizada);
+            fecharModal();
+            
+            alert('Manifestação atualizada com sucesso!');
+        } catch (error) {
+            console.error('Erro ao atualizar manifestação:', error);
+            alert('Erro ao atualizar manifestação. Tente novamente.');
+        }
     };
 
     const total = manifestacoes.length;
