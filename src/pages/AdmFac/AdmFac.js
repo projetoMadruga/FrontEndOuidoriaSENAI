@@ -181,10 +181,34 @@ function AdmFac() {
         setCurrentAdminAreaName(areaName);
             
       
-        const todasManifestacoes = getAllManifestacoes();
-
+        // Busca manifestações do backend
+        const carregarManifestacoes = async () => {
+            try {
+                const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
+                
+                // Mapeia as manifestações do backend para o formato esperado pelo frontend
+                const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
+                    id: m.id,
+                    tipo: manifestacoesService.formatarTipo(m.tipo),
+                    setor: m.area || 'Geral', // O backend retorna 'area', não 'setor'
+                    contato: m.emailUsuario || 'Anônimo',
+                    dataCriacao: m.dataHora,
+                    status: manifestacoesService.formatarStatus(m.status),
+                    descricao: m.descricaoDetalhada,
+                    local: m.local,
+                    respostaAdmin: m.observacao,
+                    dataResposta: m.dataResposta,
+                    caminhoAnexo: m.caminhoAnexo
+                }));
+                
+                setManifestacoes(manifestacoesMapeadas);
+            } catch (error) {
+                console.error('Erro ao carregar manifestações:', error);
+                alert('Erro ao carregar manifestações. Tente novamente.');
+            }
+        };
         
-        setManifestacoes(todasManifestacoes.map(m => ({ ...m })));
+        carregarManifestacoes();
 
     }, [navigate]);
     

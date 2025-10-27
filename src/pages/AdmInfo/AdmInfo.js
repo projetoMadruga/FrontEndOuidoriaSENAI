@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CrudService from '../../services/CrudService'; 
+import { manifestacoesService } from '../../services/manifestacoesService';
 import Footer from '../../Components/Footer';
 import SenaiLogo from '../../assets/imagens/logosenai.png';
 import ModalGerenciar from '../../Components/ModalGerenciar';
@@ -139,9 +140,34 @@ function AdmInfo() {
         const areaName = ADMIN_MAPPING[userEmail];
         setCurrentAdminAreaName(areaName);
             
-        const todasManifestacoes = CrudService.getAll();
+        // Busca manifestações do backend
+        const carregarManifestacoes = async () => {
+            try {
+                const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
+                
+                // Mapeia as manifestações do backend para o formato esperado pelo frontend
+                const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
+                    id: m.id,
+                    tipo: manifestacoesService.formatarTipo(m.tipo),
+                    setor: m.area || 'Geral',
+                    contato: m.emailUsuario || 'Anônimo',
+                    dataCriacao: m.dataHora,
+                    status: manifestacoesService.formatarStatus(m.status),
+                    descricao: m.descricaoDetalhada,
+                    local: m.local,
+                    respostaAdmin: m.observacao,
+                    dataResposta: m.dataResposta,
+                    caminhoAnexo: m.caminhoAnexo
+                }));
+                
+                setManifestacoes(manifestacoesMapeadas);
+            } catch (error) {
+                console.error('Erro ao carregar manifestações:', error);
+                alert('Erro ao carregar manifestações. Tente novamente.');
+            }
+        };
         
-        setManifestacoes(todasManifestacoes);
+        carregarManifestacoes();
 
     }, [navigate]);
     

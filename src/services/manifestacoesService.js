@@ -201,5 +201,136 @@ export const manifestacoesService = {
       console.error(`Erro ao deletar manifestação ${id}:`, error);
       throw error;
     }
+  },
+
+  /**
+   * Cria uma nova reclamação
+   */
+  async criarReclamacao(reclamacao) {
+    try {
+      const response = await fetch(buildUrl("/reclamacoes"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        },
+        body: JSON.stringify(reclamacao)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Erro ao criar reclamação:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Cria uma nova denúncia
+   */
+  async criarDenuncia(denuncia) {
+    try {
+      const response = await fetch(buildUrl("/denuncias"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        },
+        body: JSON.stringify(denuncia)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Erro ao criar denúncia:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Cria um novo elogio
+   */
+  async criarElogio(elogio) {
+    try {
+      const response = await fetch(buildUrl("/elogios"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        },
+        body: JSON.stringify(elogio)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Erro ao criar elogio:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Cria uma nova sugestão
+   */
+  async criarSugestao(sugestao) {
+    try {
+      const response = await fetch(buildUrl("/sugestoes"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("authToken")}`
+        },
+        body: JSON.stringify(sugestao)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("Erro ao criar sugestão:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Formata data e hora para o formato ISO esperado pelo backend
+   */
+  formatarDataHora(dataHora) {
+    if (!dataHora) return new Date().toISOString();
+    
+    try {
+      // Se já estiver no formato datetime-local (YYYY-MM-DDTHH:mm)
+      // converte para ISO string
+      const data = new Date(dataHora);
+      return data.toISOString();
+    } catch (error) {
+      console.error("Erro ao formatar data:", error);
+      return new Date().toISOString();
+    }
+  },
+
+  /**
+   * Mapeia o setor selecionado para o enum do backend
+   * TipoReclamacao aceita apenas: MANUTENCAO ou ADMINISTRACAO
+   */
+  mapearSetor(setor) {
+    const setorMap = {
+      'Geral': 'ADMINISTRACAO',
+      'Informatica': 'MANUTENCAO',
+      'Mecanica': 'MANUTENCAO',
+      'Faculdade': 'ADMINISTRACAO'
+    };
+    return setorMap[setor] || 'ADMINISTRACAO';
   }
 };
