@@ -57,7 +57,7 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
     const welcomeText = adminName 
         ? `${adminName.split(' ')[0]}`
         : `Admin de ${adminAreaName}`; 
-
+        
     return e(
         'div',
         { className: 'admin-header-full' },
@@ -66,7 +66,13 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
-                    e('img', { src: SenaiLogo, alt: 'SENAI Logo' }),
+                    e('button', {
+                        key: 'back-btn',
+                        className: 'btn-voltar',
+                        onClick: () => navigate('/'),
+                        style: { marginRight: '15px', cursor: 'pointer' }
+                    }, '← Voltar'),
+                    e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
                         null,
@@ -140,6 +146,17 @@ function AdmMec() {
         
         const areaName = ADMIN_MAPPING[userEmail];
         setCurrentAdminAreaName(areaName);
+        
+        // Função para formatar área do backend para nome do setor
+        const formatarArea = (area) => {
+            const areaMap = {
+                'FACULDADE_SENAI': 'Faculdade',
+                'MECANICA': 'Mecânica',
+                'ADS_REDES': 'Informática',
+                'MANUFATURA_DIGITAL': 'Informática'
+            };
+            return areaMap[area] || area || 'Geral';
+        };
             
         // Busca manifestações do backend
         const carregarManifestacoes = async () => {
@@ -150,7 +167,7 @@ function AdmMec() {
                 const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
                     id: m.id,
                     tipo: manifestacoesService.formatarTipo(m.tipo),
-                    setor: m.area || 'Geral',
+                    setor: formatarArea(m.area),
                     contato: m.emailUsuario || 'Anônimo',
                     dataCriacao: m.dataHora,
                     status: manifestacoesService.formatarStatus(m.status),
@@ -205,7 +222,7 @@ function AdmMec() {
         setManifestacaoSelecionada(null);
     };
 
-    const salvarRespostaModal = (id, novoStatus, resposta) => {
+    const salvarRespostaModal = async (id, novoStatus, resposta) => {
         const manifestacaoOriginal = manifestacoes.find(m => m.id === id);
         
         if (!canEditManifestacao(manifestacaoOriginal, currentAdminArea)) {
@@ -213,22 +230,38 @@ function AdmMec() {
             return;
         }
 
-        const manifestacaoEditada = {
-            ...manifestacaoOriginal,
-            status: novoStatus,
-            respostaAdmin: resposta,
-            dataResposta: new Date().toLocaleDateString('pt-BR')
-        };
-        
-        setManifestacoes(prevManifestacoes => {
-            const listaAtualizada = prevManifestacoes.map(m => 
-                m.id === manifestacaoEditada.id ? manifestacaoEditada : m
-            );
+        try {
+            // Prepara os dados para atualização (converte campos do frontend para backend)
+            const dadosAtualizados = {
+                id: manifestacaoOriginal.id,
+                tipo: manifestacaoOriginal.tipo,
+                area: manifestacaoOriginal.setor,
+                local: manifestacaoOriginal.local,
+                descricaoDetalhada: manifestacaoOriginal.descricao,
+                status: manifestacoesService.converterStatusParaBackend(novoStatus),
+                observacao: resposta,
+                dataHora: manifestacaoOriginal.dataCriacao
+            };
+
+            // Atualiza no backend
+            await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
+
+            const manifestacaoEditada = {
+                ...manifestacaoOriginal,
+                status: novoStatus,
+                respostaAdmin: resposta,
+                dataResposta: new Date().toLocaleDateString('pt-BR')
+            };
             
-            CrudService.updateManifestacoes(listaAtualizada);
-            
-            return listaAtualizada;
-        });
+            setManifestacoes(prevManifestacoes => {
+                return prevManifestacoes.map(m => 
+                    m.id === manifestacaoEditada.id ? manifestacaoEditada : m
+                );
+            });
+        } catch (error) {
+            console.error('Erro ao salvar resposta:', error);
+            alert('Erro ao salvar resposta. Tente novamente.');
+        }
         
         fecharModal(); 
     };

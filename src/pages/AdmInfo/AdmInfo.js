@@ -62,6 +62,12 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
+                    e('button', {
+                        key: 'back-btn',
+                        className: 'btn-voltar',
+                        onClick: () => navigate('/'),
+                        style: { marginRight: '15px', cursor: 'pointer' }
+                    }, '← Voltar'),
                     e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
@@ -139,6 +145,17 @@ function AdmInfo() {
         
         const areaName = ADMIN_MAPPING[userEmail];
         setCurrentAdminAreaName(areaName);
+        
+        // Função para formatar área do backend para nome do setor
+        const formatarArea = (area) => {
+            const areaMap = {
+                'FACULDADE_SENAI': 'Faculdade',
+                'MECANICA': 'Mecânica',
+                'ADS_REDES': 'Informática',
+                'MANUFATURA_DIGITAL': 'Informática'
+            };
+            return areaMap[area] || area || 'Geral';
+        };
             
         // Busca manifestações do backend
         const carregarManifestacoes = async () => {
@@ -149,7 +166,7 @@ function AdmInfo() {
                 const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
                     id: m.id,
                     tipo: manifestacoesService.formatarTipo(m.tipo),
-                    setor: m.area || 'Geral',
+                    setor: formatarArea(m.area),
                     contato: m.emailUsuario || 'Anônimo',
                     dataCriacao: m.dataHora,
                     status: manifestacoesService.formatarStatus(m.status),
@@ -209,20 +226,37 @@ function AdmInfo() {
             return;
         }
 
-        const manifestacaoEditada = {
-            ...manifestacaoOriginal,
-            status: novoStatus,
-            respostaAdmin: resposta,
-            dataResposta: new Date().toLocaleDateString('pt-BR')
-        };
+        try {
+            // Prepara os dados para atualização (converte campos do frontend para backend)
+            const dadosAtualizados = {
+                id: manifestacaoOriginal.id,
+                tipo: manifestacaoOriginal.tipo,
+                area: manifestacaoOriginal.setor,
+                local: manifestacaoOriginal.local,
+                descricaoDetalhada: manifestacaoOriginal.descricao,
+                status: manifestacoesService.converterStatusParaBackend(novoStatus),
+                observacao: resposta,
+                dataHora: manifestacaoOriginal.dataCriacao
+            };
         
-        CrudService.updateManifestacao(manifestacaoEditada); 
+            CrudService.updateManifestacao(dadosAtualizados); 
         
-        setManifestacoes(prevManifestacoes => {
-            return prevManifestacoes.map(m => 
-                m.id === manifestacaoEditada.id ? manifestacaoEditada : m
-            );
-        });
+            const manifestacaoEditada = {
+                ...manifestacaoOriginal,
+                status: novoStatus,
+                respostaAdmin: resposta,
+                dataResposta: new Date().toLocaleDateString('pt-BR')
+            };
+
+            setManifestacoes(prevManifestacoes => {
+                return prevManifestacoes.map(m => 
+                    m.id === manifestacaoEditada.id ? manifestacaoEditada : m
+                );
+            });
+        } catch (error) {
+            console.error('Erro ao salvar resposta:', error);
+            alert('Erro ao salvar resposta. Tente novamente.');
+        }
         
         fecharModal(); 
     };

@@ -112,13 +112,30 @@ export const manifestacoesService = {
    */
   formatarStatus(status) {
     const statusMap = {
-      'PENDENTE': 'Em Análise',
+      'PENDENTE': 'Pendente',
+      'EM_ANDAMENTO': 'Em Andamento',
+      'CONCLUIDO': 'Resolvida',
       'EM_ANALISE': 'Em Análise',
-      'RESOLVIDA': 'Finalizada',
+      'RESOLVIDA': 'Resolvida',
       'FINALIZADA': 'Finalizada',
       'CANCELADA': 'Cancelada'
     };
     return statusMap[status] || status;
+  },
+
+  /**
+   * Converte status formatado de volta para o enum do backend
+   */
+  converterStatusParaBackend(statusFormatado) {
+    const reverseMap = {
+      'Pendente': 'PENDENTE',
+      'Em Andamento': 'EM_ANDAMENTO',
+      'Resolvida': 'CONCLUIDO',
+      'Em Análise': 'PENDENTE',
+      'Finalizada': 'CONCLUIDO',
+      'Cancelada': 'CANCELADA'
+    };
+    return reverseMap[statusFormatado] || statusFormatado;
   },
 
   /**

@@ -49,6 +49,12 @@ const AdminHeader = ({ navigate, SenaiLogo }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
+                    e('button', {
+                        key: 'back-btn',
+                        className: 'btn-voltar',
+                        onClick: () => navigate('/'),
+                        style: { marginRight: '15px', cursor: 'pointer' }
+                    }, '← Voltar'),
                     e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
@@ -191,12 +197,16 @@ function Admin() {
                 return;
             }
 
-            // Prepara os dados para atualização
+            // Prepara os dados para atualização (converte campos do frontend para backend)
             const dadosAtualizados = {
-                ...manifestacaoAtual,
-                status: novoStatus,
+                id: manifestacaoAtual.id,
+                tipo: manifestacaoAtual.tipo,
+                area: manifestacaoAtual.setor,
+                local: manifestacaoAtual.local,
+                descricaoDetalhada: manifestacaoAtual.descricao,
+                status: manifestacoesService.converterStatusParaBackend(novoStatus),
                 observacao: resposta,
-                dataHora: manifestacaoAtual.dataCriacao // Mantém a data original
+                dataHora: manifestacaoAtual.dataCriacao
             };
 
             // Atualiza no backend

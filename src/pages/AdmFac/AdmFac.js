@@ -95,6 +95,12 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
+                    e('button', {
+                        key: 'back-btn',
+                        className: 'btn-voltar',
+                        onClick: () => navigate('/'),
+                        style: { marginRight: '15px', cursor: 'pointer' }
+                    }, '← Voltar'),
                     e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
@@ -181,6 +187,17 @@ function AdmFac() {
         setCurrentAdminAreaName(areaName);
             
       
+        // Função para formatar área do backend para nome do setor
+        const formatarArea = (area) => {
+            const areaMap = {
+                'FACULDADE_SENAI': 'Faculdade',
+                'MECANICA': 'Mecânica',
+                'ADS_REDES': 'Informática',
+                'MANUFATURA_DIGITAL': 'Informática'
+            };
+            return areaMap[area] || area || 'Geral';
+        };
+        
         // Busca manifestações do backend
         const carregarManifestacoes = async () => {
             try {
@@ -190,7 +207,7 @@ function AdmFac() {
                 const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
                     id: m.id,
                     tipo: manifestacoesService.formatarTipo(m.tipo),
-                    setor: m.area || 'Geral', // O backend retorna 'area', não 'setor'
+                    setor: formatarArea(m.area), // Formata a área do backend
                     contato: m.emailUsuario || 'Anônimo',
                     dataCriacao: m.dataHora,
                     status: manifestacoesService.formatarStatus(m.status),
@@ -277,12 +294,16 @@ function AdmFac() {
         }
 
         try {
-            // Prepara os dados para atualização
+            // Prepara os dados para atualização (converte campos do frontend para backend)
             const dadosAtualizados = {
-                ...manifestacaoOriginal,
-                status: novoStatus,
+                id: manifestacaoOriginal.id,
+                tipo: manifestacaoOriginal.tipo,
+                area: manifestacaoOriginal.setor,
+                local: manifestacaoOriginal.local,
+                descricaoDetalhada: manifestacaoOriginal.descricao, // Converte descricao → descricaoDetalhada
+                status: manifestacoesService.converterStatusParaBackend(novoStatus),
                 observacao: resposta,
-                dataHora: manifestacaoOriginal.dataCriacao // Mantém a data original
+                dataHora: manifestacaoOriginal.dataCriacao
             };
 
             // Atualiza no backend
