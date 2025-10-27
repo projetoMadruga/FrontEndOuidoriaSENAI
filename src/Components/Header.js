@@ -13,12 +13,26 @@ const getNomeUsuarioLogado = () => {
         const usuarioLogadoString = localStorage.getItem('usuarioLogado');
         if (usuarioLogadoString) {
             const usuarioLogado = JSON.parse(usuarioLogadoString);
-            return usuarioLogado.nome || usuarioLogado.email; 
+            // Preferir o nome cadastrado
+            if (usuarioLogado.nome && usuarioLogado.nome.toString().trim().length > 0) {
+                return usuarioLogado.nome;
+            }
+
+            // Se não houver nome, formatar a parte local do e-mail (antes do @)
+            if (usuarioLogado.email) {
+                const parte = usuarioLogado.email.split('@')[0];
+                const nomeFormatado = parte.replace(/[._]/g, ' ')
+                    .split(' ')
+                    .filter(Boolean)
+                    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+                    .join(' ');
+                return nomeFormatado || usuarioLogado.email;
+            }
         }
     } catch (error) {
         console.error("Erro ao ler ou fazer parse do usuário logado:", error);
     }
-    return null; 
+    return null;
 };
 
 

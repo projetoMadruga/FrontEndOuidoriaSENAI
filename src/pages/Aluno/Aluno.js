@@ -149,6 +149,21 @@ function Aluno() {
         return data.toLocaleDateString("pt-BR");
     };
 
+    const obterNomeExibicao = (usuario) => {
+        if (!usuario) return 'Usuário';
+        if (usuario.nome && usuario.nome.toString().trim().length > 0) return usuario.nome;
+        if (usuario.email) {
+            const parte = usuario.email.split('@')[0];
+            const nomeFormatado = parte.replace(/[._]/g, ' ')
+                .split(' ')
+                .filter(Boolean)
+                .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+                .join(' ');
+            return nomeFormatado || usuario.email;
+        }
+        return 'Usuário';
+    };
+
     const carregarManifestacoes = async (email) => {
         try {
             // Tenta buscar do backend primeiro
@@ -305,13 +320,13 @@ function Aluno() {
         return React.createElement('div', {className: 'aluno-container'}, 'Carregando painel...');
     }
 
-    return React.createElement(
-        "div",
-        { className: "aluno-container" },
-        React.createElement(AlunoHeader, { 
-            navigate: navigate, 
-            usuarioNome: usuarioLogado.nome || usuarioLogado.email 
-        }),
+    return React.createElement(
+        "div",
+        { className: "aluno-container" },
+        React.createElement(AlunoHeader, {
+            navigate: navigate,
+            usuarioNome: obterNomeExibicao(usuarioLogado)
+        }),
         React.createElement('div', { className: 'linha-vermelha' }),
 
         React.createElement(
