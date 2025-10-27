@@ -36,19 +36,6 @@ function Header() {
     const [modalAberto, setModalAberto] = useState('');
     const [nomeExibicao, setNomeExibicao] = useState(getNomeUsuarioLogado());
 
-    function handleLogout() {
-        try {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('refreshToken');
-            localStorage.removeItem('usuarioLogado');
-        } catch (e) {
-            console.error('Erro ao limpar credenciais do usuário:', e);
-        }
-        setNomeExibicao(null);
-        setModalAberto('');
-        navigate('/');
-    }
-
     useEffect(() => {
         const checkLoginStatus = () => {
             setNomeExibicao(getNomeUsuarioLogado());
