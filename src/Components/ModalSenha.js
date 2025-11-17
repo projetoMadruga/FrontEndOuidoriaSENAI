@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // <-- A importação de 'useNavigate' deve ser mantida, mas pode ser removida se o hook não for usado.
 import "./Modal.css";
 import logosenai from "../assets/imagens/logosenai.png";
 import boneco from "../assets/imagens/boneco.png";
@@ -10,7 +10,7 @@ function ModalSenha({ isOpen, onClose }) {
   const [mensagemEnviada, setMensagemEnviada] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Linha removida!
 
   useEffect(() => {
     if (isOpen) {
@@ -32,6 +32,7 @@ function ModalSenha({ isOpen, onClose }) {
       setEmail("");
     } catch (err) {
       console.error("Erro ao solicitar recuperação de senha:", err);
+      // ... (Resto do bloco catch)
       if (err && err.status === 400) {
         setError("E-mail inválido ou não cadastrado.");
       } else {
@@ -60,7 +61,7 @@ function ModalSenha({ isOpen, onClose }) {
           React.createElement(
             "div", 
             { className: "submit-btn mensagem-sucesso" }, 
-           
+            
             React.createElement("p", null, "Um e-mail foi enviado para você com instruções para redefinir sua senha. Verifique sua caixa de entrada e spam.")
           )
         : 

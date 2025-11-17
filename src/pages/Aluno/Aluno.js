@@ -269,7 +269,7 @@ function Aluno() {
             finalizadas: counts['Finalizada']
         };
 
-    }, [manifestacoes, ALUNO_STATUS_MAP]);
+    }, [manifestacoes, ALUNO_STATUS_MAP, getAlunoStatus]); // ⬅️ CORRIGIDO: Adicionada getAlunoStatus
 
     const renderManifestacaoCard = (item) => {
         const alunoStatus = getAlunoStatus(item.status);
