@@ -43,6 +43,7 @@ const canEditManifestacao = (manifestacao, currentAdminArea) => {
     if (adminArea === 'mecanica') {
         const isReclamacao = manifestacaoTipo === 'reclamacao' || manifestacaoTipo === 'reclamação';
 
+        // Regra para Mecânica: Pode editar manifestações da sua área, Geral ou Reclamações de qualquer área.
         if (manifestacaoArea === 'mecanica' || manifestacaoArea === 'geral' || isReclamacao) {
             return true;
         }
@@ -66,19 +67,8 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
-                    // CÓDIGO CORRIGIDO PARA USAR O ÍCONE ANGULAR (⟨)
-                    e('div', { 
-                        key: 'back-btn-container',
-                        className: 'back-icon-container', // Estilo para o círculo e posicionamento
-                        onClick: () => navigate('/')
-                    }, 
-                        e('span', { 
-                            key: 'back-icon', 
-                            className: 'back-arrow-icon' 
-                        }, '⟨') // Ícone de seta angular
-                    ),
-                    // FIM DA CORREÇÃO
-
+                    // CÓDIGO DO BOTÃO/ÍCONE DE VOLTAR REMOVIDO DAQUI
+                    
                     e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
@@ -171,13 +161,12 @@ function AdmMec() {
             try {
                 const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
                 const overridesRaw = localStorage.getItem('setorOverridesById');
-                const setorOverrides = overridesRaw ? JSON.parse(overridesRaw) : {};
+                const setorOverrides = overridesRaw ? JSON.parse(overridesRaw) : {}; 
                 
-                // Mapeia as manifestações do backend para o formato esperado pelo frontend
                 const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
                     id: m.id,
                     tipo: manifestacoesService.formatarTipo(m.tipo),
-                    setor: setorOverrides[m.id] || formatarArea(m.area),
+                    setor: setorOverrides[m.id] || formatarArea(m.area), 
                     contato: m.emailUsuario || 'Anônimo',
                     dataCriacao: m.dataHora,
                     status: manifestacoesService.formatarStatus(m.status),
@@ -214,9 +203,6 @@ function AdmMec() {
 
         if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {
             const listaSemExcluida = manifestacoes.filter(m => m.id !== id);
-            
-            CrudService.updateManifestacoes(listaSemExcluida);
-            
             setManifestacoes(listaSemExcluida);
         }
     };
@@ -241,7 +227,6 @@ function AdmMec() {
         }
 
         try {
-            // Prepara os dados para atualização (converte campos do frontend para backend)
             const dadosAtualizados = {
                 id: manifestacaoOriginal.id,
                 tipo: manifestacaoOriginal.tipo,
@@ -253,8 +238,7 @@ function AdmMec() {
                 dataHora: manifestacaoOriginal.dataCriacao
             };
 
-            // Atualiza no backend
-            await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
+            await manifestacoesService.atualizarManifestacao(id, dadosAtualizados); 
 
             const manifestacaoEditada = {
                 ...manifestacaoOriginal,
@@ -288,7 +272,7 @@ function AdmMec() {
     const pendentes = manifestacoesParaMetricas.filter(m => m.status === 'Pendente').length;
     const resolvidas = manifestacoesParaMetricas.filter(m => m.status === 'Resolvida').length;
     
-    const metricasLabel = 'Mecânica/Geral/Reclamações';
+    const metricasLabel = 'Mecânica/Geral/Reclamações'; 
 
     const tiposFiltro = ['Todos', 'Denúncia', 'Sugestão', 'Elogio', 'Reclamação'];
 
@@ -307,7 +291,7 @@ function AdmMec() {
     const corpoTabela = manifestacoesFiltradas.length === 0
         ? e(
             'tr', 
-            null, 
+            { key: 'empty' }, 
             e('td', { colSpan: 6, className: 'empty-table-message' }, 'Nenhuma manifestação encontrada para o filtro selecionado.')
         )
         : manifestacoesFiltradas.map((m) => {
@@ -362,22 +346,31 @@ function AdmMec() {
                                 },
                                 'Excluir'
                             )
-                        ]
+                        ].filter(Boolean)
                     )
                 ]
             );
         });
 
+    // --- RENDERIZAÇÃO PRINCIPAL COMPLETA ---
     return e(
         'div',
         { className: 'admin-container' },
         [
+            // Mantendo o botão fora do header para a funcionalidade de voltar à Home
+            e('button', {
+                key: 'back-to-home',
+                className: 'btn-back-home',
+                onClick: () => navigate('/'),
+                title: 'Voltar para a Home'
+            }, '‹'),
+
             e(AdminHeader, { 
                 key: 'header', 
                 navigate: navigate, 
                 SenaiLogo: SenaiLogo, 
                 adminAreaName: currentAdminAreaName,
-                adminName: currentAdminName
+                adminName: currentAdminName 
             }),
 
             e('div', { key: 'linha-vermelha', className: 'linha-vermelha' }),
@@ -390,9 +383,9 @@ function AdmMec() {
                         'div',
                         { key: 'cards', className: 'summary-cards' },
                         [
-                            { label: 'Total de Manifestações (Sistema)', value: totalGeral },
-                            { label: `Pendentes (${metricasLabel})`, value: pendentes },
-                            { label: `Resolvidas (${metricasLabel})`, value: resolvidas },
+                            { label: 'Total de Manifestações (Geral)', value: totalGeral },
+                            { label: `Pendentes (${metricasLabel})`, value: pendentes }, 
+                            { label: `Resolvidas (${metricasLabel})`, value: resolvidas }, 
                         ].map((item, index) =>
                             e(
                                 'div',
@@ -404,7 +397,7 @@ function AdmMec() {
                             )
                         )
                     ),
-
+                    
                     e(
                         'div',
                         { key: 'table-and-title-wrapper', className: 'table-and-title-wrapper' },
@@ -413,16 +406,12 @@ function AdmMec() {
                                 'div',
                                 { key: 'titulo', className: 'manifestacoes-title' },
                                 [
-                                    e('h3', null, 'Todas as Manifestações Registradas'),
-                                    e('small', null, `Visualização total (Ações restritas a Mecânica, Geral e Reclamação)`)
+                                    e('h3', null, 'Manifestações Registradas'),
+                                    e('small', null, `Visualização de todas as manifestações (Ações restritas a ${metricasLabel})`) 
                                 ]
                             ),
 
-                            e(
-                                'div',
-                                { key: 'filtros', className: 'filter-buttons' },
-                                botoesFiltro
-                            ),
+                            e('div', { key: 'filtros', className: 'filter-buttons' }, botoesFiltro),
 
                             e(
                                 'div',
@@ -457,6 +446,7 @@ function AdmMec() {
 
             e(Footer, { key: 'footer' }),
 
+            // Modal
             manifestacaoSelecionada && e(ModalGerenciar, {
                 key: 'modal-gerenciar',
                 manifestacao: manifestacaoSelecionada,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../../Components/Footer'; 
 import logoSenai from '../../assets/imagens/logosenai.png'; 
@@ -20,12 +20,15 @@ const getTipoUsuarioFromEmail = (email) => {
     return "Outro";
 };
 
+// --- CRUD SERVICE SIMULADO ---
 const CrudServiceSimulado = {
     getAllUsers: () => {
         try {
             const data = localStorage.getItem('usuarios');
             if (data) {
-                return JSON.parse(data).map((user, index) => ({
+                const users = JSON.parse(data);
+                // Mapeia adicionando o ID (fallback index) e o Tipo
+                return users.map((user, index) => ({
                     id: user.id || index + 1,
                     tipo: getTipoUsuarioFromEmail(user.email), 
                     ...user
@@ -42,6 +45,7 @@ const CrudServiceSimulado = {
         localStorage.setItem('usuarios', JSON.stringify(usersToSave));
     }
 };
+// -----------------------------
 
 const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
     const handleLogout = () => {
@@ -131,7 +135,12 @@ function UsuariosFac() {
     const [filtroTipo, setFiltroTipo] = useState('Todos');
     const [modalUsuario, setModalUsuario] = useState(null); 
 
-    useEffect(() => {
+    // Define os e-mails dos administradores de Faculdade
+    const ADMIN_EMAILS = useMemo(() => ['vieira@senai.br', 'vieira@docente.senai.br'], []);
+
+
+    // 💡 LÓGICA DE CARREGAMENTO E FILTRAGEM (Usando useCallback para rodar apenas quando necessário)
+    const carregarUsuarios = useCallback(() => {
         let usuario = null;
         try {
             const stored = localStorage.getItem('usuarioLogado');
@@ -142,8 +151,6 @@ function UsuariosFac() {
         } catch (e) {
             console.error('Erro ao parse do localStorage (usuarioLogado):', e);
         }
-
-        const ADMIN_EMAILS = ['vieira@senai.br', 'vieira@docente.senai.br'];
 
         if (!usuario || !ADMIN_EMAILS.includes(usuario.email)) {
             alert('Você precisa estar logado como administrador da faculdade para acessar esta página.');
@@ -156,23 +163,34 @@ function UsuariosFac() {
         const usuariosFiltrados = todosUsuarios.filter(u => {
             
             const cursoNormalizado = normalizeString(u.curso);
-            const isAreaInfo = cursoNormalizado === 'faculdade' || cursoNormalizado === 'fac'; 
+            
+            // 💡 FILTRO PARA FACULDADE: Inclui 'faculdade' ou 'fac' (caso a seleção tenha sido abreviada)
+            const isAreaFac = cursoNormalizado.includes('faculdade') || cursoNormalizado.includes('fac'); 
             
             const isNotAdmin = !ADMIN_EMAILS.includes(u.email); 
 
-            return isAreaInfo && isNotAdmin;
+            return isAreaFac && isNotAdmin;
         });
         
         setUsuarios(usuariosFiltrados);
         
-    }, [navigate]);
+    }, [navigate, ADMIN_EMAILS]);
+
+    // 💡 Usa useEffect para chamar a função de carregamento na montagem
+    useEffect(() => {
+        carregarUsuarios();
+    }, [carregarUsuarios]);
 
     const filtrarPorTipo = (lista, tipo) => {
         if (tipo === 'Todos') return lista;
         return lista.filter(u => normalizeString(u.tipo) === normalizeString(tipo)); 
     };
 
-    const usuariosFiltrados = filtrarPorTipo(usuarios, filtroTipo);
+    // Usando useMemo para evitar recalcular a lista filtrada em renders não relacionados
+    const usuariosFiltrados = useMemo(
+        () => filtrarPorTipo(usuarios, filtroTipo),
+        [usuarios, filtroTipo]
+    );
 
     const getTipoLabel = (tipo) => {
         switch(tipo) {
@@ -194,9 +212,10 @@ function UsuariosFac() {
     const excluirUsuario = (usuario) => {
         if (window.confirm(`Tem certeza que deseja excluir ${usuario.nome}?`)) {
             
-            const novosUsuariosInfo = usuarios.filter(u => u.id !== usuario.id);
-            setUsuarios(novosUsuariosInfo);
+            const novosUsuariosFac = usuarios.filter(u => u.id !== usuario.id);
+            setUsuarios(novosUsuariosFac);
             
+            // Exclui da lista completa e persiste no localStorage
             const todosUsuarios = CrudServiceSimulado.getAllUsers();
             const listaFinal = todosUsuarios.filter(u => u.id !== usuario.id);
             CrudServiceSimulado.persistUsers(listaFinal);
@@ -207,7 +226,7 @@ function UsuariosFac() {
 
     const tabelaCorpo = usuariosFiltrados.length === 0
         ? [e('tr', { key: 'empty' },
-              e('td', { colSpan: 5, className: 'empty-row-message' }, 'Nenhum usuário de Informática encontrado.')
+              e('td', { colSpan: 5, className: 'empty-row-message' }, 'Nenhum usuário da Faculdade encontrado.')
           )]
         : usuariosFiltrados.map(u => e('tr', { key: u.id },
               e('td', null, u.tipo || 'N/A'), 
@@ -229,7 +248,7 @@ function UsuariosFac() {
     );
 
     return e('div', { className: 'admin-container' },
-        e('button', { // <<< ADICIONADO O BOTÃO DA SETA AQUI
+        e('button', { 
             key: 'back-to-home',
             className: 'btn-back-home',
             onClick: () => navigate('/admin/adm-fac'),
@@ -248,8 +267,8 @@ function UsuariosFac() {
             e('div', { className: 'usuarios-table-card' },
                 
                 e('div', { className: 'usuarios-header-content-inner' },
-                    e('h3', null, 'Usuários Registrados'),
-                    e('p', null, 'Gerencie os usuários da faculdade')
+                    e('h3', null, 'Usuários Registrados (Faculdade)'),
+                    e('p', null, 'Gerencie os usuários da Faculdade SENAI.')
                 ),
                 
                 e('div', { className: 'usuarios-filter-buttons' }, 

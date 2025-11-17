@@ -11,10 +11,12 @@ import SenaiLogo from '../../assets/imagens/logosenai.png';
 const FuncionarioHeader = React.memo(({ navigate, usuarioEmail }) => {
     
     const headerTitle = 'Painel do Funcionário';
-    const emailDisplay = usuarioEmail || '@senai.br';
+    const emailDisplay = usuarioEmail || '@sp.senai.br';
     
     const handleLogout = () => {
         localStorage.removeItem('usuarioLogado');
+        localStorage.removeItem('authToken'); 
+        localStorage.removeItem('refreshToken'); 
         navigate('/');
     };
 
@@ -103,6 +105,7 @@ function Funcionario() {
     const [manifestacoes, setManifestacoes] = useState([]);
     const [usuarioLogado, setUsuarioLogado] = useState(null);
     const [itemVisualizando, setItemVisualizando] = useState(null);
+    const [isLoading, setIsLoading] = useState(true); 
     
     const fecharVisualizacao = useCallback(() => setItemVisualizando(null), []);
 
@@ -148,11 +151,16 @@ function Funcionario() {
         }
 
         try {
-          
+            
             const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
             
             
-            const manifestacoesFormatadas = manifestacoesBackend.map(m => {
+            // Filtra as manifestações criadas por este usuário (funcionário)
+            const minhasManifestacoes = manifestacoesBackend.filter(m => 
+                m.emailUsuario && m.emailUsuario.toLowerCase() === usuario.email.toLowerCase()
+            );
+
+            const manifestacoesFormatadas = minhasManifestacoes.map(m => {
                 const setorOverrides = localStorage.getItem('setorOverridesById');
                 const setorMap = setorOverrides ? JSON.parse(setorOverrides) : {};
                 const setorOverride = setorMap[m.id.toString()];
@@ -180,7 +188,8 @@ function Funcionario() {
 
         } catch (error) {
             console.error("Erro ao carregar manifestações do backend. Tentando fallback para localStorage:", error);
-          
+            
+            // Fallback para localStorage filtrado pelo e-mail do funcionário
             const dados = CrudService.getByEmail(usuario.email) || [];
             
             
@@ -202,14 +211,21 @@ function Funcionario() {
             }
         }
         
+        // 1. Lógica de Autenticação/Redirecionamento
         if (!usuario || !usuario.email) {
             alert("Você precisa estar logado para acessar esta página.");
             navigate("/", { replace: true });
             return;
         }
 
-        const isFuncionario = usuario.email.toLowerCase().endsWith("@senai.br") &&
-                             !usuario.email.toLowerCase().endsWith("@aluno.senai.br");
+        const emailLower = usuario.email.toLowerCase();
+        
+        // 💡 CORREÇÃO: Verifica se o e-mail termina em '@sp.senai.br' (incluindo docentes) E NÃO é de aluno.
+        const isFuncionario = (
+            emailLower.endsWith("@sp.senai.br") || // Inclui funcionários gerais
+            emailLower.endsWith("@sp.docente.senai.br") // Inclui docentes (se a regra for essa)
+        ) &&
+        !emailLower.endsWith("@aluno.senai.br"); // Exclui alunos
 
         if (!isFuncionario) {
             alert("Acesso restrito. Esta página é exclusiva para Funcionários.");
@@ -217,8 +233,11 @@ function Funcionario() {
             return;
         }
 
+        // 2. Define o usuário e carrega as manifestações
         setUsuarioLogado(usuario);
-        carregarManifestacoes(usuario); 
+        carregarManifestacoes(usuario)
+            .finally(() => setIsLoading(false)); 
+            
     }, [navigate, carregarManifestacoes]);
 
     
@@ -277,7 +296,7 @@ function Funcionario() {
     };
 
 
-    if (!usuarioLogado) {
+    if (isLoading || !usuarioLogado) {
         return <div className='funcionario-container'>Carregando painel...</div>;
     }
 
@@ -291,7 +310,7 @@ function Funcionario() {
                 <div className='funcionario-summary-cards'>
                     {[
                         { label: 'Total de Manifestações', value: total, className: 'card-total' },
-                   
+                    
                         { label: 'Pendentes', value: pendente, className: 'card-pendente' }, 
                         { label: 'Em Análise', value: emAnalise, className: 'card-analise' },
                         { label: 'Resolvidas', value: resolvido, className: 'card-resolvidas' },

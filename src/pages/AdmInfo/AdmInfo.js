@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CrudService from '../../services/CrudService'; 
+import CrudService from '../../services/CrudService'; // Assumindo que este CrudService é usado para o delete/update local ou simplificado
 import { manifestacoesService } from '../../services/manifestacoesService';
 import Footer from '../../Components/Footer';
 import SenaiLogo from '../../assets/imagens/logosenai.png';
@@ -8,6 +8,8 @@ import ModalGerenciar from '../../Components/ModalGerenciar';
 import './AdmInfo.css';
 
 const { createElement: e } = React;
+
+// --- Mapeamentos e Helpers ---
 
 const ADMIN_MAPPING = {
     'diretor@senai.br': 'Geral',
@@ -31,6 +33,8 @@ const NORMALIZED_MAPPING = Object.fromEntries(
     Object.entries(ADMIN_MAPPING).map(([email, area]) => [email, normalizeString(area)])
 );
 
+// Regra de Edição/Exclusão para o admin de Informática: 
+// Pode editar manifestações da 'Informática' ou 'Geral'.
 const canEditManifestacao = (manifestacao, currentAdminArea) => {
     const adminArea = normalizeString(currentAdminArea);
     const manifestacaoArea = normalizeString(manifestacao.setor);
@@ -45,9 +49,11 @@ const canEditManifestacao = (manifestacao, currentAdminArea) => {
         }
     }
     
+    // Regra geral (para Mecânica, Faculdade, etc.)
     return adminArea === manifestacaoArea; 
 };
 
+// --- Componente de Cabeçalho ---
 const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
     
     const welcomeText = adminName 
@@ -88,7 +94,8 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                     e('button', {
                         key: 'usuarios-btn',
                         className: 'btn-usuarios',
-                        onClick: () => navigate('/admin/usuarios-info')
+                        // Navega para o painel de usuários de Informática (AdmInfo)
+                        onClick: () => navigate('/admin/usuarios-info') 
                     }, 'Usuários'),
                     e('button', {
                         key: 'sair-btn',
@@ -104,6 +111,8 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
     );
 };
 
+
+// --- Componente Principal AdmInfo ---
 
 function AdmInfo() {
     const navigate = useNavigate();
@@ -134,6 +143,7 @@ function AdmInfo() {
         
         const userNormalizedArea = NORMALIZED_MAPPING[userEmail];
         
+        // --- 1. Verificação de Acesso ---
         if (!userNormalizedArea) {
             alert('Você precisa estar logado como administrador para acessar esta página.');
             navigate('/');
@@ -146,7 +156,7 @@ function AdmInfo() {
         const areaName = ADMIN_MAPPING[userEmail];
         setCurrentAdminAreaName(areaName);
         
-        // Função para formatar área do backend para nome do setor
+        // --- 2. Função para formatar área (do backend) para nome do setor (frontend) ---
         const formatarArea = (area) => {
             const areaMap = {
                 'FACULDADE_SENAI': 'Faculdade',
@@ -157,7 +167,7 @@ function AdmInfo() {
             return areaMap[area] || area || 'Geral';
         };
             
-        // Busca manifestações do backend
+        // --- 3. Busca manifestações do backend ---
         const carregarManifestacoes = async () => {
             try {
                 const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
@@ -180,7 +190,7 @@ function AdmInfo() {
                 setManifestacoes(manifestacoesMapeadas);
             } catch (error) {
                 console.error('Erro ao carregar manifestações:', error);
-                alert('Erro ao carregar manifestações. Tente novamente.');
+                // alert('Erro ao carregar manifestações. Tente novamente.');
             }
         };
         
@@ -192,7 +202,9 @@ function AdmInfo() {
         return e('div', null, 'Carregando painel...');
     }
 
-    const excluirManifestacao = (id) => {
+    // --- Funções de Manipulação ---
+    
+    const excluirManifestacao = async (id) => {
         const manifestacao = manifestacoes.find(m => m.id === id);
         
         if (!manifestacao || !canEditManifestacao(manifestacao, currentAdminArea)) {
@@ -201,9 +213,14 @@ function AdmInfo() {
         }
         
         if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {
-            CrudService.deleteManifestacao(id); 
-            const listaSemExcluida = manifestacoes.filter(m => m.id !== id);
-            setManifestacoes(listaSemExcluida);
+            try {
+                await CrudService.deleteManifestacao(id); // Assumindo que este serviço existe
+                const listaSemExcluida = manifestacoes.filter(m => m.id !== id);
+                setManifestacoes(listaSemExcluida);
+            } catch (error) {
+                console.error('Erro ao excluir manifestação:', error);
+                alert('Erro ao excluir manifestação. Tente novamente.');
+            }
         }
     };
 
@@ -218,7 +235,7 @@ function AdmInfo() {
         setManifestacaoSelecionada(null);
     };
 
-    const salvarRespostaModal = (id, novoStatus, resposta) => {
+    const salvarRespostaModal = async (id, novoStatus, resposta) => {
         const manifestacaoOriginal = manifestacoes.find(m => m.id === id);
         
         if (!canEditManifestacao(manifestacaoOriginal, currentAdminArea)) {
@@ -231,7 +248,7 @@ function AdmInfo() {
             const dadosAtualizados = {
                 id: manifestacaoOriginal.id,
                 tipo: manifestacaoOriginal.tipo,
-                area: manifestacaoOriginal.setor,
+                area: manifestacoesService.mapearAreaParaBackend(manifestacaoOriginal.setor),
                 local: manifestacaoOriginal.local,
                 descricaoDetalhada: manifestacaoOriginal.descricao,
                 status: manifestacoesService.converterStatusParaBackend(novoStatus),
@@ -239,7 +256,7 @@ function AdmInfo() {
                 dataHora: manifestacaoOriginal.dataCriacao
             };
         
-            CrudService.updateManifestacao(dadosAtualizados); 
+            await CrudService.updateManifestacao(dadosAtualizados); // Assumindo que este serviço existe
         
             const manifestacaoEditada = {
                 ...manifestacaoOriginal,
@@ -261,12 +278,14 @@ function AdmInfo() {
         fecharModal(); 
     };
 
+    // --- Filtragem e Métricas ---
     const manifestacoesFiltradas = filtro === 'Todos'
         ? manifestacoes
         : manifestacoes.filter(m => 
             normalizeString(m.tipo) === normalizeString(filtro)
         );
 
+    // Métricas consideram apenas manifestações que o admin pode gerenciar (sua área + Geral)
     const manifestacoesParaMetricas = manifestacoes.filter(m => canEditManifestacao(m, currentAdminArea));
         
     const totalGeral = manifestacoes.length;
@@ -289,6 +308,7 @@ function AdmInfo() {
         )
     );
 
+    // --- Renderização da Tabela ---
     const corpoTabela = manifestacoesFiltradas.length === 0
         ? e(
             'tr', 
@@ -352,11 +372,19 @@ function AdmInfo() {
                 ]
             );
         });
+
     
     return e(
         'div',
         { className: 'admin-container' },
         [
+            e('button', {
+                key: 'back-to-home',
+                className: 'btn-back-home',
+                onClick: () => navigate('/'),
+                title: 'Voltar para a Home'
+            }, '‹'),
+
             e(AdminHeader, { 
                 key: 'header', 
                 navigate: navigate, 
@@ -389,7 +417,7 @@ function AdmInfo() {
                             )
                         )
                     ),
-
+                    
                     e(
                         'div',
                         { key: 'table-and-title-wrapper', className: 'table-and-title-wrapper' },
@@ -399,15 +427,11 @@ function AdmInfo() {
                                 { key: 'titulo', className: 'manifestacoes-title' },
                                 [
                                     e('h3', null, 'Manifestações Registradas'),
-                                    e('small', null, `Visualização de todas as manifestações (Ações restritas a ${metricasLabel})`) 
+                                    e('small', null, `Visualização de todas as manifestações (Ações restritas a ${metricasLabel})`)
                                 ]
                             ),
 
-                            e(
-                                'div',
-                                { key: 'filtros', className: 'filter-buttons' },
-                                botoesFiltro
-                            ),
+                            e('div', { key: 'filtros', className: 'filter-buttons' }, botoesFiltro),
 
                             e(
                                 'div',
@@ -442,13 +466,15 @@ function AdmInfo() {
 
             e(Footer, { key: 'footer' }),
 
+            // Modal
             manifestacaoSelecionada && e(ModalGerenciar, {
                 key: 'modal-gerenciar',
                 manifestacao: manifestacaoSelecionada,
                 onClose: fecharModal,
                 onSaveResponse: salvarRespostaModal,
                 adminSetor: currentAdminArea, 
-                readOnly: !canEditManifestacao(manifestacaoSelecionada, currentAdminArea) 
+                // Passa o readOnly baseado na função canEditManifestacao
+                readOnly: !canEditManifestacao(manifestacaoSelecionada, currentAdminArea)
             })
         ]
     );

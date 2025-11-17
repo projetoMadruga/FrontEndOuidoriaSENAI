@@ -30,8 +30,19 @@
     gap: 15px;
 }
 
+
+.seta-voltar {
+    display: block; 
+    height: 34px; 
+    width: auto;
+    cursor: pointer;
+    /* Ajustei a seta para baixo (90px parecia muito alto, mas mantive o seu último valor fornecido) */
+    transform: translateY(90px); 
+}
+
+/* 🚀 AUMENTO DA LOGO: O valor foi alterado de 30px para 50px */
 .senai-logo-img {
-    height: 30px !important; 
+    height: 36px !important; 
     width: auto !important;
     object-fit: contain;
 }

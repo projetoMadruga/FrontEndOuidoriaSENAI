@@ -4,6 +4,37 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    position: relative; /* Essencial para posicionar o botão de seta */
+}
+
+/* ⬅️ Estilização do botão de seta Corrigida (MANTIDO) */
+.btn-back-home {
+    position: absolute;
+    top: 125px; /* Ajuste Vertical para alinhar com o header */
+    left: 40px; 
+    background: none;
+    border: none;
+    
+    /* Estilos Visuais */
+    font-size: 38px; 
+    font-weight: 300; 
+    color: #666; 
+    
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    z-index: 1000;
+    transition: color 0.2s;
+}
+
+.btn-back-home:hover {
+    color: #b60000;
+}
+
+/* ❌ OCULTA O BOTÃO "VOLTAR" DE CIMA */
+/* Assumindo que o botão "Voltar" (texto) usa a classe .btn-voltar */
+.btn-voltar {
+    display: none; 
 }
 
 .linha-vermelha {
@@ -12,6 +43,7 @@
     background-color: #b60000;
 }
 
+/* 🖼️ Cabeçalho e Layout */
 .admin-header-full {
     background: #fff;
     display: flex;
@@ -20,6 +52,8 @@
     padding: 15px 40px;
     width: 100%;
     box-sizing: border-box;
+    /* Ajustado: Adiciona padding esquerdo para evitar sobreposição da seta com a logo */
+    padding-left: 90px; 
 }
 
 .admin-header-left {
@@ -77,6 +111,7 @@
     background-color: #f0f0f0;
 }
 
+/* 📊 Conteúdo Principal e Cards */
 .admin-main-content-wrapper {
     flex: 1; 
     display: flex;
@@ -121,6 +156,7 @@
     margin-top: 0;
 }
 
+/* 📋 Tabela de Manifestações e Filtros */
 .manifestacoes-title {
     width: 100%;
     margin-bottom: 10px;
@@ -201,6 +237,7 @@
     border-bottom: none;
 }
 
+/* 🟠 Status Pendente */
 .status-label.pendente {
     background: #ffcc00;
     color: #5c4100;
@@ -211,6 +248,7 @@
     white-space: nowrap;
 }
 
+/* 🟢 Status Resolvida */
 .status-label.resolvida {
     background: #a8d5b1;
     color: #1e5a2b;
@@ -228,7 +266,8 @@
 }
 
 .btn-gerenciar,
-.btn-excluir {
+.btn-excluir,
+.btn-visualizar-only {
     padding: 6px 12px;
     border-radius: 5px;
     cursor: pointer;
@@ -238,7 +277,8 @@
     border: none;
 }
 
-.btn-gerenciar {
+.btn-gerenciar,
+.btn-visualizar-only {
     background: #f0f0f0;
     border: 1px solid #ccc;
     color: #444;
@@ -251,6 +291,7 @@
 .btn-excluir {
     background: #b60000;
     color: #fff;
+    border: 1px solid #b60000;
 }
 
 .btn-excluir:hover {
@@ -269,6 +310,7 @@
     font-style: italic;
 }
 
+/* ⬇️ Rodapé */
 .footer-container {
     background-color: #e9e9e9; 
     color: #333; 

@@ -2,9 +2,9 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Footer from '../../Components/Footer'; 
 import logoSenai from '../../assets/imagens/logosenai.png'; 
-import './UsuariosMec.css';
+import './UsuariosMec.css'; // Presumindo o nome do CSS
 
-// Removemos: const { createElement: e } = React;
+const { createElement: e } = React;
 
 const normalizeString = (str) => {
     return String(str || '')
@@ -20,13 +20,14 @@ const getTipoUsuarioFromEmail = (email) => {
     return "Outro";
 };
 
-// Transformado em uma factory de serviço para garantir que não precise de useCallback
+// --- CRUD SERVICE SIMULADO ---
 const CrudServiceSimulado = {
     getAllUsers: () => {
         try {
             const data = localStorage.getItem('usuarios');
             if (data) {
-                return JSON.parse(data).map((user, index) => ({
+                const users = JSON.parse(data);
+                return users.map((user, index) => ({
                     id: user.id || index + 1,
                     tipo: getTipoUsuarioFromEmail(user.email), 
                     ...user
@@ -43,6 +44,7 @@ const CrudServiceSimulado = {
         localStorage.setItem('usuarios', JSON.stringify(usersToSave));
     }
 };
+// -----------------------------
 
 const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
     const handleLogout = () => {
@@ -59,76 +61,69 @@ const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
         return page === activePage ? `${baseClass} active` : baseClass;
     }
 
-    // JSX para AdminHeader
-    return (
-        <div className="admin-header-full">
-            <div className="admin-header-left">
-                <img src={logo} alt="SENAI Logo" />
-                <div>
-                    <h1>Painel Administrativo - Mecânica</h1>
-                    <span>{`Bem-vindo(a), ${usuarioNome || 'Admin'}`}</span> 
-                </div>
-            </div>
-            <div className="admin-header-right">
-                <button
-                    className={getNavClass('manifestacoes')}
-                    onClick={() => navigate('/admin/adm-mec')}
-                >
-                    Manifestações
-                </button>
-                
-                <button
-                    className={getNavClass('usuarios')}
-                    onClick={() => navigate('/admin/usuarios-mec')} 
-                >
-                    Usuários
-                </button>
-                
-                <button
-                    className={getNavClass('sair')}
-                    onClick={handleLogout}
-                >
-                    Sair
-                </button>
-            </div>
-        </div>
+    return e('div', { className: 'admin-header-full' }, 
+        e('div', { className: 'admin-header-left' },
+            e('img', { src: logo, alt: 'SENAI Logo' }),
+            e('div', null,
+                e('h1', null, 'Painel Administrativo - Mecânica/Manufatura'),
+                e('span', null, `Bem-vindo(a), ${usuarioNome || 'Admin'}`) 
+            )
+        ),
+        e('div', { className: 'admin-header-right' },
+            e('button', {
+                className: getNavClass('manifestacoes'),
+                onClick: () => navigate('/admin/adm-mec')
+            }, 'Manifestações'),
+            
+            e('button', {
+                className: getNavClass('usuarios'),
+                onClick: () => navigate('/admin/usuarios-mec') 
+            }, 'Usuários'),
+            
+            e('button', {
+                className: getNavClass('sair'),
+                onClick: handleLogout
+            }, 'Sair')
+        )
     );
 };
 
 const ModalInspecionarUsuario = ({ onClose, usuario }) => {
     if (!usuario) return null;
 
-    // JSX para ModalInspecionarUsuario
-    return (
-        <div className="modal-overlay" onClick={onClose}> 
-            <div 
-                className="modal-content modal-inspecionar" 
-                onClick={(e) => e.stopPropagation()} 
-            >
-                <div className="modal-header">
-                    <h2>{`Inspeção de Usuário: ${usuario.nome}`}</h2>
-                    <button className="close-button" onClick={onClose}>×</button>
-                </div>
+    return e(
+        'div',
+        { className: 'modal-overlay', onClick: onClose }, 
+        e(
+            'div',
+            { 
+                className: 'modal-content modal-inspecionar', 
+                onClick: (e) => e.stopPropagation() 
+            },
+            [
+                e('div', { key: 'header', className: 'modal-header' }, [
+                    e('h2', { key: 'title' }, `Inspeção de Usuário: ${usuario.nome}`),
+                    e('button', { key: 'close', className: 'close-button', onClick: onClose }, '×')
+                ]),
 
-                <div className="modal-body">
-                    <p><strong>Nome Completo: </strong>{usuario.nome}</p>
-                    <p><strong>Tipo de Usuário: </strong>{usuario.tipo || 'N/A'}</p>
-                    <p><strong>Email: </strong>{usuario.email}</p>
-                    <p><strong>Curso/Área: </strong>{usuario.curso || 'N/A'}</p>
-                    <p><strong>Telefone: </strong>{usuario.telefone || 'N/A'}</p>
-                    <p><strong>CPF: </strong>{usuario.cpf || 'N/A'}</p>
-                </div>
+                e('div', { key: 'body', className: 'modal-body' }, [
+                    e('p', { key: 'nome' }, [e('strong', null, 'Nome Completo: '), usuario.nome]),
+                    e('p', { key: 'tipo' }, [e('strong', null, 'Tipo de Usuário: '), usuario.tipo || 'N/A']),
+                    e('p', { key: 'email' }, [e('strong', null, 'Email: '), usuario.email]),
+                    e('p', { key: 'area' }, [e('strong', null, 'Curso/Área: '), usuario.curso || 'N/A']),
+                    e('p', { key: 'telefone' }, [e('strong', null, 'Telefone: '), usuario.telefone || 'N/A']),
+                    e('p', { key: 'cpf' }, [e('strong', null, 'CPF: '), usuario.cpf || 'N/A']),
+                ]),
                 
-                <div className="modal-actions">
-                    <button 
-                        className="btn-primary" 
-                        onClick={onClose} 
-                    >
-                        Fechar
-                    </button>
-                </div>
-            </div>
-        </div>
+                e('div', { key: 'footer', className: 'modal-actions' }, [
+                    e('button', { 
+                        key: 'btn-fechar', 
+                        className: 'btn-primary', 
+                        onClick: onClose 
+                    }, 'Fechar')
+                ])
+            ]
+        )
     );
 }
 
@@ -139,10 +134,13 @@ function UsuariosMec() {
     const [filtroTipo, setFiltroTipo] = useState('Todos');
     const [modalUsuario, setModalUsuario] = useState(null); 
 
-    // Use useMemo para garantir que ADMIN_EMAILS seja estável
+    // Define os e-mails dos administradores de Mecânica
     const ADMIN_EMAILS = useMemo(() => ['pino@senai.br', 'pino@docente.senai.br'], []);
 
-    // Função de carregamento e filtragem de usuários usando useCallback
+    // 💡 Termos que definem a área de Mecânica, incluindo Manufatura Digital
+    const AREA_MEC_TERMS = useMemo(() => ['mecanica', 'manufatura'], []);
+
+
     const carregarUsuarios = useCallback(() => {
         let usuario = null;
         try {
@@ -166,33 +164,38 @@ function UsuariosMec() {
         const usuariosFiltrados = todosUsuarios.filter(u => {
             
             const cursoNormalizado = normalizeString(u.curso);
-            const isAreaMec = cursoNormalizado === 'mecanica'; 
             
-            const isNotAdmin = !ADMIN_EMAILS.includes(u.email);
+            // 💡 LÓGICA DE FILTRO ATUALIZADA: Inclui Mecânica E Manufatura Digital
+            const isAreaMec = AREA_MEC_TERMS.some(term => cursoNormalizado.includes(term));
+            
+            const isNotAdmin = !ADMIN_EMAILS.includes(u.email); 
 
             return isAreaMec && isNotAdmin;
         });
         
         setUsuarios(usuariosFiltrados);
-    }, [navigate, ADMIN_EMAILS]); // Adicionei navigate e ADMIN_EMAILS como dependências
+        
+    }, [navigate, ADMIN_EMAILS, AREA_MEC_TERMS]);
 
-    // Chamada inicial
     useEffect(() => {
         carregarUsuarios();
-    }, [carregarUsuarios]); // Adicionei carregarUsuarios como dependência
+    }, [carregarUsuarios]);
 
     const filtrarPorTipo = (lista, tipo) => {
         if (tipo === 'Todos') return lista;
         return lista.filter(u => normalizeString(u.tipo) === normalizeString(tipo)); 
     };
 
-    const usuariosFiltrados = useMemo(() => filtrarPorTipo(usuarios, filtroTipo), [usuarios, filtroTipo]);
+    const usuariosFiltrados = useMemo(
+        () => filtrarPorTipo(usuarios, filtroTipo),
+        [usuarios, filtroTipo]
+    );
 
     const getTipoLabel = (tipo) => {
         switch(tipo) {
             case 'Aluno': return 'Alunos';
             case 'Funcionário': return 'Funcionários';
-            case 'Outro': return 'Outros';
+            case 'Outro': return 'Outros'; 
             default: return 'Todos';
         }
     };
@@ -208,11 +211,9 @@ function UsuariosMec() {
     const excluirUsuario = (usuario) => {
         if (window.confirm(`Tem certeza que deseja excluir ${usuario.nome}?`)) {
             
-            // Remove da lista exibida na tela
             const novosUsuariosMec = usuarios.filter(u => u.id !== usuario.id);
             setUsuarios(novosUsuariosMec);
             
-            // Remove do localStorage (toda a lista)
             const todosUsuarios = CrudServiceSimulado.getAllUsers();
             const listaFinal = todosUsuarios.filter(u => u.id !== usuario.id);
             CrudServiceSimulado.persistUsers(listaFinal);
@@ -221,89 +222,83 @@ function UsuariosMec() {
         }
     };
 
-    // JSX para a Tabela
     const tabelaCorpo = usuariosFiltrados.length === 0
-        ? (
-            <tr>
-                <td colSpan={5} className="empty-row-message">Nenhum usuário de Mecânica encontrado.</td>
-            </tr>
-        )
-        : usuariosFiltrados.map(u => (
-            <tr key={u.id}>
-                <td>{u.tipo || 'N/A'}</td> 
-                <td>{u.nome}</td>
-                <td>{u.curso || 'N/A'}</td> 
-                <td>{u.email}</td>
-                <td className="table-actions">
-                    <button className="btn-gerenciar" onClick={() => inspecionarUsuario(u)}>Inspecionar</button>
-                    <button className="btn-excluir" onClick={() => excluirUsuario(u)}>Excluir</button>
-                </td>
-            </tr>
-        ));
+        ? [e('tr', { key: 'empty' },
+              e('td', { colSpan: 5, className: 'empty-row-message' }, 'Nenhum usuário de Mecânica/Manufatura Digital encontrado.')
+          )]
+        : usuariosFiltrados.map(u => e('tr', { key: u.id },
+              e('td', null, u.tipo || 'N/A'), 
+              e('td', null, u.nome),
+              e('td', null, u.curso || 'N/A'), 
+              e('td', null, u.email),
+              e('td', { className: 'table-actions' },
+                  e('button', { className: 'btn-gerenciar', onClick: () => inspecionarUsuario(u) }, 'Inspecionar'), 
+                  e('button', { className: 'btn-excluir', onClick: () => excluirUsuario(u) }, 'Excluir')
+              )
+          ));
     
     const botoesFiltro = ['Todos', 'Aluno', 'Funcionário'].map(tipo => 
-        <button
-            key={tipo}
-            className={filtroTipo === tipo ? 'btn-filter active-filter' : 'btn-filter'}
-            onClick={() => setFiltroTipo(tipo)}
-        >
-            {getTipoLabel(tipo)}
-        </button>
+        e('button', {
+            key: tipo,
+            className: filtroTipo === tipo ? 'btn-filter active-filter' : 'btn-filter',
+            onClick: () => setFiltroTipo(tipo)
+        }, getTipoLabel(tipo))
     );
 
-    // JSX para o componente principal
-    return (
-        <div className="admin-container">
-            <AdminHeader 
-                logo={logoSenai} 
-                usuarioNome={usuarioLogado?.nome || 'Admin'} 
-                navigate={navigate} 
-                activePage="usuarios" 
-            />
-            
-            <div className="linha-vermelha" />
+    return e('div', { className: 'admin-container' },
+        e('button', { 
+            key: 'back-to-home',
+            className: 'btn-back-home',
+            onClick: () => navigate('/admin/adm-mec'),
+            title: 'Voltar para a Home'
+        }, '‹'),
+        e(AdminHeader, { 
+            logo: logoSenai, 
+            usuarioNome: usuarioLogado?.nome || 'Admin', 
+            navigate: navigate, 
+            activePage: "usuarios" 
+        }),
+        
+        e('div', { className: 'linha-vermelha' }),
 
-            <div className="admin-main-content-wrapper">
-                <div className="usuarios-table-card">
-                    
-                    <div className="usuarios-header-content-inner">
-                        <h3>Usuários Registrados (Mecânica)</h3>
-                        <p>Gerencie os usuários da área de Mecânica</p>
-                    </div>
-                    
-                    <div className="usuarios-filter-buttons"> 
-                        <span className="filter-label">Filtrar por tipo:</span>
-                        {botoesFiltro}
-                    </div>
+        e('div', { className: 'admin-main-content-wrapper' },
+            e('div', { className: 'usuarios-table-card' },
+                
+                e('div', { className: 'usuarios-header-content-inner' },
+                    e('h3', null, 'Usuários Registrados (Mecânica e Manufatura Digital)'),
+                    e('p', null, 'Gerencie os usuários das áreas de Mecânica e Manufatura Digital.')
+                ),
+                
+                e('div', { className: 'usuarios-filter-buttons' }, 
+                    e('span', { className: 'filter-label' }, 'Filtrar por tipo:'),
+                    ...botoesFiltro
+                ),
 
-                    <div className="table-wrapper">
-                        <table className="table-users">
-                            <thead>
-                                <tr>
-                                    <th>Tipo</th>
-                                    <th>Nome</th>
-                                    <th>Área</th>
-                                    <th>Email</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>{tabelaCorpo}</tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                e('div', { className: 'table-wrapper' },
+                    e('table', { className: 'table-users' },
+                        e('thead', null,
+                            e('tr', null,
+                                e('th', null, 'Tipo'),
+                                e('th', null, 'Nome'),
+                                e('th', null, 'Área'),
+                                e('th', null, 'Email'),
+                                e('th', null, 'Ações')
+                            )
+                        ),
+                        e('tbody', null, ...tabelaCorpo)
+                    )
+                )
+            )
+        ),
 
-            {modalUsuario && (
-                <ModalInspecionarUsuario 
-                    onClose={fecharModal} 
-                    usuario={modalUsuario} 
-                />
-            )}
+        modalUsuario && e(ModalInspecionarUsuario, { 
+            onClose: fecharModal, 
+            usuario: modalUsuario 
+        }),
 
-            <div className="footer-wrapper"> 
-                <Footer />
-            </div>
-        </div>
+        e('div', { className: 'footer-wrapper' }, 
+            e(Footer, null)
+        )
     );
 }
 
