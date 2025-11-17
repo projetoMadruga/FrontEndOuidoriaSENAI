@@ -229,6 +229,12 @@ function UsuariosFac() {
     );
 
     return e('div', { className: 'admin-container' },
+        e('button', { // <<< ADICIONADO O BOTÃO DA SETA AQUI
+            key: 'back-to-home',
+            className: 'btn-back-home',
+            onClick: () => navigate('/admin/adm-fac'),
+            title: 'Voltar para a Home'
+        }, '‹'),
         e(AdminHeader, { 
             logo: logoSenai, 
             usuarioNome: usuarioLogado?.nome || 'Admin', 

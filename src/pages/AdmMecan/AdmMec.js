@@ -66,12 +66,19 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
-                    e('button', {
-                        key: 'back-btn',
-                        className: 'btn-voltar',
-                        onClick: () => navigate('/'),
-                        style: { marginRight: '15px', cursor: 'pointer' }
-                    }, '← Voltar'),
+                    // CÓDIGO CORRIGIDO PARA USAR O ÍCONE ANGULAR (⟨)
+                    e('div', { 
+                        key: 'back-btn-container',
+                        className: 'back-icon-container', // Estilo para o círculo e posicionamento
+                        onClick: () => navigate('/')
+                    }, 
+                        e('span', { 
+                            key: 'back-icon', 
+                            className: 'back-arrow-icon' 
+                        }, '⟨') // Ícone de seta angular
+                    ),
+                    // FIM DA CORREÇÃO
+
                     e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
@@ -201,8 +208,8 @@ function AdmMec() {
         const manifestacao = manifestacoes.find(m => m.id === id);
 
         if (!manifestacao || !canEditManifestacao(manifestacao, currentAdminArea)) {
-             alert(`Você só pode excluir manifestações da sua área (${currentAdminAreaName}), manifestações Gerais ou Reclamações.`);
-             return;
+            alert(`Você só pode excluir manifestações da sua área (${currentAdminAreaName}), manifestações Gerais ou Reclamações.`);
+            return;
         }
 
         if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {

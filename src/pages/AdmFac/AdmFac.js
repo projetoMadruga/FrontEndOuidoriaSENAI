@@ -76,12 +76,6 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
-                    e('button', {
-                        key: 'back-btn',
-                        className: 'btn-voltar',
-                        onClick: () => navigate('/'),
-                        style: { marginRight: '15px', cursor: 'pointer' }
-                    }, '← Voltar'),
                     e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
@@ -363,7 +357,7 @@ function AdmFac() {
                 if (v.includes('geral')) return 'Geral';
                 if (v.includes('mecan')) return 'Mecânica';
                 if (v.includes('inform') || v.includes('ads') || v.includes('rede')) return 'Informática';
-                if (v.includes('facul')) return 'Informática'; // front-only: colapsa Faculdade em Informática
+                if (v.includes('facul')) return 'Informática'; 
                 return 'Geral';
             };
             const podeEditar = canEditManifestacao(m, currentAdminAreaName);
@@ -432,7 +426,13 @@ function AdmFac() {
         'div',
         { className: 'admin-container' },
         [
-            
+            e('button', {
+                key: 'back-to-home',
+                className: 'btn-back-home',
+                onClick: () => navigate('/'),
+                title: 'Voltar para a Home'
+            }, '‹'),
+
             e(AdminHeader, { 
                 key: 'header', 
                 navigate: navigate, 

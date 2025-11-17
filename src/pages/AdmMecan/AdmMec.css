@@ -28,6 +28,35 @@
     gap: 15px;
 }
 
+/* ⭐ NOVO ESTILO PARA O ÍCONE DE VOLTAR */
+.back-icon-container {
+    /* Define o container que simula o círculo da seta */
+    width: 30px; 
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    /* Alinhamento ajustado para compensar a posição da logo e do texto */
+}
+
+.back-icon-container:hover {
+    background-color: #f0f0f0; 
+}
+
+.back-arrow-icon {
+    /* Estiliza a seta angular "⟨" */
+    font-size: 24px;
+    font-weight: 300; /* Linha fina */
+    color: #444; 
+    line-height: 1; 
+    transform: translateY(1px); /* Ajuste fino de alinhamento vertical */
+}
+/* FIM ⭐ NOVO ESTILO */
+
+
 .admin-header-left img {
     height: 35px;
 }
