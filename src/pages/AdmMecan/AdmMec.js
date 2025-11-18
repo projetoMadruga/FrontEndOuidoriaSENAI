@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CrudService from '../../services/CrudService';
+import { manifestacoesService } from '../../services/manifestacoesService';
 import Footer from '../../Components/Footer';
 import SenaiLogo from '../../assets/imagens/logosenai.png';
 import ModalGerenciar from '../../Components/ModalGerenciar';
@@ -56,7 +57,7 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
     const welcomeText = adminName 
         ? `${adminName.split(' ')[0]}`
         : `Admin de ${adminAreaName}`; 
-
+        
     return e(
         'div',
         { className: 'admin-header-full' },
@@ -65,7 +66,20 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
-                    e('img', { src: SenaiLogo, alt: 'SENAI Logo' }),
+                    // CÓDIGO CORRIGIDO PARA USAR O ÍCONE ANGULAR (⟨)
+                    e('div', { 
+                        key: 'back-btn-container',
+                        className: 'back-icon-container', // Estilo para o círculo e posicionamento
+                        onClick: () => navigate('/')
+                    }, 
+                        e('span', { 
+                            key: 'back-icon', 
+                            className: 'back-arrow-icon' 
+                        }, '⟨') // Ícone de seta angular
+                    ),
+                    // FIM DA CORREÇÃO
+
+                    e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
                         null,
@@ -139,10 +153,49 @@ function AdmMec() {
         
         const areaName = ADMIN_MAPPING[userEmail];
         setCurrentAdminAreaName(areaName);
-            
-        const todasManifestacoes = CrudService.getAll();
         
-        setManifestacoes(todasManifestacoes.map(m => ({ ...m })));
+        // Função para formatar área do backend para nome do setor
+        const formatarArea = (area) => {
+            const areaMap = {
+                'FACULDADE_SENAI': 'Faculdade',
+                'MECANICA': 'Mecânica',
+                'ADS_REDES': 'Informática',
+                'MANUFATURA_DIGITAL': 'Informática',
+                'GERAL': 'Geral'
+            };
+            return areaMap[area] || area || 'Geral';
+        };
+            
+        // Busca manifestações do backend
+        const carregarManifestacoes = async () => {
+            try {
+                const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
+                const overridesRaw = localStorage.getItem('setorOverridesById');
+                const setorOverrides = overridesRaw ? JSON.parse(overridesRaw) : {};
+                
+                // Mapeia as manifestações do backend para o formato esperado pelo frontend
+                const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
+                    id: m.id,
+                    tipo: manifestacoesService.formatarTipo(m.tipo),
+                    setor: setorOverrides[m.id] || formatarArea(m.area),
+                    contato: m.emailUsuario || 'Anônimo',
+                    dataCriacao: m.dataHora,
+                    status: manifestacoesService.formatarStatus(m.status),
+                    descricao: m.descricaoDetalhada,
+                    local: m.local,
+                    respostaAdmin: m.observacao,
+                    dataResposta: m.dataResposta,
+                    caminhoAnexo: m.caminhoAnexo
+                }));
+                
+                setManifestacoes(manifestacoesMapeadas);
+            } catch (error) {
+                console.error('Erro ao carregar manifestações:', error);
+                alert('Erro ao carregar manifestações. Tente novamente.');
+            }
+        };
+        
+        carregarManifestacoes();
 
     }, [navigate]);
     
@@ -155,8 +208,8 @@ function AdmMec() {
         const manifestacao = manifestacoes.find(m => m.id === id);
 
         if (!manifestacao || !canEditManifestacao(manifestacao, currentAdminArea)) {
-             alert(`Você só pode excluir manifestações da sua área (${currentAdminAreaName}), manifestações Gerais ou Reclamações.`);
-             return;
+            alert(`Você só pode excluir manifestações da sua área (${currentAdminAreaName}), manifestações Gerais ou Reclamações.`);
+            return;
         }
 
         if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {
@@ -179,7 +232,7 @@ function AdmMec() {
         setManifestacaoSelecionada(null);
     };
 
-    const salvarRespostaModal = (id, novoStatus, resposta) => {
+    const salvarRespostaModal = async (id, novoStatus, resposta) => {
         const manifestacaoOriginal = manifestacoes.find(m => m.id === id);
         
         if (!canEditManifestacao(manifestacaoOriginal, currentAdminArea)) {
@@ -187,22 +240,38 @@ function AdmMec() {
             return;
         }
 
-        const manifestacaoEditada = {
-            ...manifestacaoOriginal,
-            status: novoStatus,
-            respostaAdmin: resposta,
-            dataResposta: new Date().toLocaleDateString('pt-BR')
-        };
-        
-        setManifestacoes(prevManifestacoes => {
-            const listaAtualizada = prevManifestacoes.map(m => 
-                m.id === manifestacaoEditada.id ? manifestacaoEditada : m
-            );
+        try {
+            // Prepara os dados para atualização (converte campos do frontend para backend)
+            const dadosAtualizados = {
+                id: manifestacaoOriginal.id,
+                tipo: manifestacaoOriginal.tipo,
+                area: manifestacoesService.mapearAreaParaBackend(manifestacaoOriginal.setor),
+                local: manifestacaoOriginal.local,
+                descricaoDetalhada: manifestacaoOriginal.descricao,
+                status: manifestacoesService.converterStatusParaBackend(novoStatus),
+                observacao: resposta,
+                dataHora: manifestacaoOriginal.dataCriacao
+            };
+
+            // Atualiza no backend
+            await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
+
+            const manifestacaoEditada = {
+                ...manifestacaoOriginal,
+                status: novoStatus,
+                respostaAdmin: resposta,
+                dataResposta: new Date().toLocaleDateString('pt-BR')
+            };
             
-            CrudService.updateManifestacoes(listaAtualizada);
-            
-            return listaAtualizada;
-        });
+            setManifestacoes(prevManifestacoes => {
+                return prevManifestacoes.map(m => 
+                    m.id === manifestacaoEditada.id ? manifestacaoEditada : m
+                );
+            });
+        } catch (error) {
+            console.error('Erro ao salvar resposta:', error);
+            alert('Erro ao salvar resposta. Tente novamente.');
+        }
         
         fecharModal(); 
     };

@@ -63,6 +63,11 @@ const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
 
     return e('div', { className: 'admin-header-full' }, 
         e('div', { className: 'admin-header-left' },
+            e('button', {
+                className: 'btn-voltar',
+                onClick: () => navigate('/'),
+                style: { marginRight: '15px', cursor: 'pointer' }
+            }, '← Voltar'),
             e('img', { src: logo, alt: 'SENAI Logo' }),
             e('div', null,
                 e('h1', null, 'Painel Administrativo - Geral'),
@@ -164,13 +169,28 @@ function UsuariosGeral() {
             // Busca todos os usuários do backend
             const usuariosBackend = await manifestacoesService.listarUsuarios();
             
+            console.log('Usuários do backend:', usuariosBackend); // Debug
+            
+            // Função para formatar o tipo de usuário
+            const formatarTipo = (cargoUsuario, email) => {
+                if (cargoUsuario === 'ALUNO') return 'Aluno';
+                if (cargoUsuario === 'FUNCIONARIO') return 'Funcionário';
+                if (cargoUsuario === 'ADMIN') return 'Administrador';
+                if (cargoUsuario === 'MANUTENCAO') return 'Manutenção';
+                // Fallback: detecta pelo email
+                return getTipoUsuarioFromEmail(email);
+            };
+            
             // Converte para o formato esperado pelo frontend
             const usuariosFormatados = usuariosBackend.map(u => ({
                 id: u.id.toString(),
                 nome: u.nome || 'Nome não informado',
                 email: u.emailEducacional,
-                tipo: u.cargoUsuario || 'USUARIO',
-                dataCadastro: new Date().toISOString(), // Data atual como fallback
+                tipo: formatarTipo(u.cargoUsuario, u.emailEducacional),
+                curso: u.curso || 'Não informado',
+                telefone: u.telefone || 'Não informado',
+                cpf: u.cpf || 'Não informado',
+                dataCadastro: new Date().toISOString(),
                 ativo: true
             }));
 
@@ -181,18 +201,12 @@ function UsuariosGeral() {
                 return isNotAdmin && isNotAdminToExclude;
             });
             
+            console.log('Usuários filtrados:', usuariosFiltrados); // Debug
             setUsuarios(usuariosFiltrados);
         } catch (error) {
             console.error("Erro ao carregar usuários do backend:", error);
-            
-            // Fallback para dados simulados se o backend falhar
-            const todosUsuarios = CrudServiceSimulado.getAllUsers();
-            const usuariosFiltrados = todosUsuarios.filter(u => {
-                const isNotAdmin = u.email !== ADMIN_EMAIL; 
-                const isNotAdminToExclude = !ADMINS_A_EXCLUIR.includes(u.email);
-                return isNotAdmin && isNotAdminToExclude;
-            });
-            setUsuarios(usuariosFiltrados);
+            alert('Erro ao carregar usuários. Verifique sua conexão e tente novamente.');
+            setUsuarios([]);
         }
     };
 

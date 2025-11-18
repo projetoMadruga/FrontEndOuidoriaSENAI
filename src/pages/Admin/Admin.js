@@ -25,6 +25,8 @@ const ManifestacaoService = {
                 
                 return manifestacoes.map((m, index) => ({
                     id: m.id || index + 1,
+                    setor: m.area || 'Geral', 
+                    contato: m.emailUsuario || 'N/A', 
                     ...m
                 }));
             }
@@ -49,6 +51,12 @@ const AdminHeader = ({ navigate, SenaiLogo }) => {
                 'div',
                 { className: 'admin-header-left' },
                 [
+                    e('button', {
+                        key: 'back-btn',
+                        className: 'btn-voltar',
+                        onClick: () => navigate('/'),
+                        style: { marginRight: '15px', cursor: 'pointer' }
+                    }, '← Voltar'),
                     e('img', { key: 'logo', src: SenaiLogo, alt: 'SENAI Logo' }),
                     e(
                         'div',
@@ -111,17 +119,14 @@ function Admin() {
             return;
         }
 
-        // Carrega manifestações do backend
         carregarManifestacoesDoBackend();
 
     }, [navigate]);
 
     const carregarManifestacoesDoBackend = async () => {
         try {
-            // Busca todas as manifestações do backend
             const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
             
-            // Converte para o formato esperado pelo frontend
             const manifestacoesFormatadas = manifestacoesBackend.map(m => ({
                 id: m.id.toString(),
                 tipo: manifestacoesService.formatarTipo(m.tipo),
@@ -131,10 +136,10 @@ function Admin() {
                 respostaAdmin: m.observacao || '',
                 localIncidente: m.local,
                 usuarioEmail: m.emailUsuario,
-                contacto: m.emailUsuario
+                setor: m.area || 'Geral', 
+                contato: m.emailUsuario
             }));
 
-            // Ordena por data de criação (mais recente primeiro)
             const manifestacoesOrdenadas = manifestacoesFormatadas.sort((a, b) => 
                 new Date(b.dataCriacao) - new Date(a.dataCriacao)
             );
@@ -143,7 +148,6 @@ function Admin() {
         } catch (error) {
             console.error("Erro ao carregar manifestações do backend:", error);
             
-            // Fallback para localStorage se o backend falhar
             const todasManifestacoes = ManifestacaoService.getAllManifestacoes();
             setManifestacoes(todasManifestacoes);
         }
@@ -158,10 +162,8 @@ function Admin() {
     const excluirManifestacao = async (id) => {
         if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {
             try {
-                // Deleta do backend
                 await manifestacoesService.deletarManifestacao(id);
                 
-                // Atualiza a lista local
                 const listaAtualizada = manifestacoes.filter(m => m.id !== id);
                 setManifestacoes(listaAtualizada);
                 
@@ -175,7 +177,13 @@ function Admin() {
 
     const gerenciarManifestacao = (id) => {
         const manifestacao = manifestacoes.find(m => m.id === id);
-        setManifestacaoSelecionada({...manifestacao});
+        if (manifestacao) {
+            setManifestacaoSelecionada({
+                ...manifestacao,
+                setor: manifestacao.setor || manifestacao.area || 'Geral', 
+                contato: manifestacao.contato || manifestacao.usuarioEmail || 'N/A'
+            });
+        }
     };
 
     const fecharModal = () => {
@@ -184,32 +192,32 @@ function Admin() {
 
     const salvarRespostaModal = async (id, novoStatus, resposta) => {
         try {
-            // Busca a manifestação atual
             const manifestacaoAtual = manifestacoes.find(m => m.id === id);
             if (!manifestacaoAtual) {
                 alert('Manifestação não encontrada.');
                 return;
             }
 
-            // Prepara os dados para atualização
             const dadosAtualizados = {
-                ...manifestacaoAtual,
-                status: novoStatus,
+                id: manifestacaoAtual.id,
+                tipo: manifestacaoAtual.tipo, 
+                area: manifestacaoAtual.setor || 'Geral', 
+                local: manifestacaoAtual.localIncidente,
+                descricaoDetalhada: manifestacaoAtual.descricao,
+                status: manifestacoesService.converterStatusParaBackend(novoStatus),
                 observacao: resposta,
-                dataHora: manifestacaoAtual.dataCriacao // Mantém a data original
+                dataHora: manifestacaoAtual.dataCriacao
             };
 
-            // Atualiza no backend
-            const manifestacaoAtualizada = await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
+            await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
             
-            // Atualiza a lista local
             const listaAtualizada = manifestacoes.map(m => {
                 if (m.id === id) {
                     return {
                         ...m,
                         status: novoStatus,
                         respostaAdmin: resposta,
-                        dataResposta: new Date().toLocaleDateString('pt-BR')
+                        dataResposta: new Date().toLocaleString('pt-BR')
                     };
                 }
                 return m;
@@ -255,8 +263,8 @@ function Admin() {
                 { key: m.id },
                 [
                     e('td', null, m.tipo),
-                    e('td', null, m.setor || 'Geral'),
-                    e('td', null, m.contato),
+                    e('td', null, m.setor || 'Geral'), 
+                    e('td', null, m.contato), 
                     e('td', null, m.dataCriacao ? new Date(m.dataCriacao).toLocaleString('pt-BR') : 'N/A'),
                     e(
                         'td',

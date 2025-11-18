@@ -2,16 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { manifestacoesService } from '../../services/manifestacoesService';
 import '../Denuncia/Denuncia.css';
+
 import Footer from '../../Components/Footer';
 import HeaderSimples from '../../Components/HeaderSimples';
 import SetaVoltar from '../../Components/SetaVoltar';
 
+
 function Denuncia() {
-  const navigate = useNavigate();
+  const navigate = useNavigate();
 
-  const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+  const getUsuarioLogado = () => {
+    try {
+      const usuarioLogado = localStorage.getItem('usuarioLogado');
+      return usuarioLogado ? JSON.parse(usuarioLogado) : null;
+    } catch (e) {
+      return null;
+    }
+  };
 
-  const [formData, setFormData] = useState({
+  const usuarioLogado = getUsuarioLogado();
+
+  const [formData, setFormData] = useState({
     nome: '',
     contato: '',
     setor: 'Geral',
@@ -22,9 +33,9 @@ function Denuncia() {
   });
 
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [anexoBase64, setAnexoBase64] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isAnonimo, setIsAnonimo] = useState(false);
 
   useEffect(() => {
     if (usuarioLogado) {
@@ -34,6 +45,9 @@ function Denuncia() {
         contato: usuarioLogado.email || '',
       }));
     }
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -49,7 +63,6 @@ function Denuncia() {
     if (!file) {
       setFormData(prevState => ({ ...prevState, anexo: null }));
       setPreviewUrl(null);
-      setAnexoBase64(null);
       return;
     }
 
@@ -67,30 +80,20 @@ function Denuncia() {
     }));
 
     if (file.type.startsWith('image/')) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        setAnexoBase64(reader.result);
-      };
-      reader.onerror = (error) => {
-        console.error('Erro ao ler o arquivo:', error);
-        setAnexoBase64(null);
-      };
     } else {
       setPreviewUrl(null);
-      setAnexoBase64(null);
     }
   };
 
   const validarCamposComuns = () => {
-    if (!formData.descricao) {
+    if (!formData.descricao || formData.descricao.trim() === '') {
       alert('Por favor, preencha a descrição detalhada da denúncia.');
       return false;
     }
-    if (!formData.local) {
+    if (!formData.local || formData.local.trim() === '') {
       alert('Por favor, preencha o local do incidente.');
       return false;
     }
@@ -98,31 +101,50 @@ function Denuncia() {
       alert('Por favor, preencha a data e hora do incidente.');
       return false;
     }
+    
+    const dataIncidente = new Date(formData.dataHora);
+    const dataAtual = new Date();
+    
+    dataAtual.setMilliseconds(0); 
+    dataIncidente.setSeconds(0);
+    
+    if (dataIncidente > dataAtual) {
+      alert('Erro com a data e hora.');
+      return false;
+    }
+    
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, isAnonimoSubmission = false) => {
     e.preventDefault();
 
     if (!validarCamposComuns()) return;
-    if (!formData.contato) {
+
+    if (!isAnonimoSubmission && !formData.contato) {
       alert('Para envio identificado, o E-mail ou Telefone é obrigatório.');
       return;
     }
+    
+    setIsAnonimo(isAnonimoSubmission);
+    
+    const finalNome = isAnonimoSubmission ? '' : formData.nome;
+    const finalContato = isAnonimoSubmission ? '' : formData.contato;
 
     setLoading(true);
     setError('');
 
     try {
-      const denuncia = {
+      const dadosDenuncia = {
         local: formData.local,
         dataHora: manifestacoesService.formatarDataHora(formData.dataHora),
         descricaoDetalhada: formData.descricao,
-        caminhoAnexo: formData.anexo ? formData.anexo.name : null
+        area: manifestacoesService.mapearAreaParaBackend(formData.setor),
       };
 
-      await manifestacoesService.criarDenuncia(denuncia);
-      alert('Denúncia enviada com sucesso!');
+      await manifestacoesService.criarDenuncia(dadosDenuncia);
+
+      alert(`Denúncia ${isAnonimoSubmission ? 'anônima ' : ''}enviada com sucesso!`);
       navigate('/confirmacao');
     } catch (err) {
       console.error('Erro ao enviar denúncia:', err);
@@ -130,173 +152,153 @@ function Denuncia() {
       alert('Erro ao enviar denúncia. Tente novamente.');
     } finally {
       setLoading(false);
+      setIsAnonimo(false);
     }
   };
 
-  const handleAnonimoSubmit = async (e) => {
-    e.preventDefault();
+  return (
+    <div className="denuncia-container">
+      <HeaderSimples />
+      <SetaVoltar />
+      
+      <div className="denuncia-content">
+        <h2 className="titulo-pagina">Faça uma Denúncia</h2>
+        
+        <div className="instrucoes-preenchimento">
+          <p><strong>* Campos Obrigatórios</strong></p>
+          <p>* Tamanho máximo para Anexar arquivo: 5 Megabytes.</p>
+          <p>Explique em quais casos a denúncia pode ser feita e reforce a confidencialidade do processo.</p>
+        </div>
+        
+        <div className="form-box">
+          <form className="formulario-denuncia" onSubmit={(e) => e.preventDefault()}>
+            
+            <label>Nome (opcional)</label>
+            <input
+              type="text"
+              name="nome"
+              value={formData.nome}
+              onChange={handleChange}
+              placeholder="Nome completo (se logado, já estará preenchido)"
+              disabled={isAnonimo}
+            />
+            
+            <label>E-mail ou Telefone {!isAnonimo ? '*' : '(opcional para anônimo)'}</label>
+            <input
+              type="text"
+              name="contato"
+              value={formData.contato}
+              onChange={handleChange}
+              placeholder="E-mail ou Telefone"
+              required={!isAnonimo}
+              disabled={isAnonimo}
+            />
+            
+            <label>Setor de Destino *</label>
+            <select
+              name="setor"
+              value={formData.setor}
+              onChange={handleChange}
+              required
+            >
+              <option value="Geral">Outro / Geral</option>
+              <option value="Informatica">Informática</option>
+              <option value="Mecanica">Mecânica</option>
+              <option value="Faculdade">Faculdade</option>
+            </select>
+            
+            <label>Local do incidente *</label>
+            <input
+              type="text"
+              name="local"
+              value={formData.local}
+              onChange={handleChange}
+              placeholder="Ex: Sala B-10, Pátio, Oficina de Mecânica..."
+              required
+            />
+            
+            <label>Data e Hora do incidente *</label>
+            <input
+              type="datetime-local"
+              name="dataHora"
+              value={formData.dataHora}
+              onChange={handleChange}
+              required
+            />
+            
+            <label>Descrição detalhada da denúncia *</label>
+            <div className="textarea-container">
+              <textarea
+                name="descricao"
+                value={formData.descricao}
+                onChange={handleChange}
+                rows={6}
+                placeholder="Descreva detalhadamente o ocorrido..."
+                required
+              />
+              
+              <label htmlFor="file-upload-denuncia" className="custom-file-upload">
+                <img
+                  src={require('../../assets/imagens/icone-anexo.png')}
+                  alt="Anexar"
+                  className="icone-anexar"
+                />
+              </label>
+              <input
+                id="file-upload-denuncia"
+                type="file"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              
+              {formData.anexo && (
+                <p className="arquivo-selecionado">
+                  Arquivo selecionado: {formData.anexo.name}
+                </p>
+              )}
+              
+              {previewUrl && (
+                <img
+                  src={previewUrl}
+                  alt="Preview do anexo"
+                  style={{ marginTop: '10px', maxWidth: '100%', maxHeight: '300px', borderRadius: '4px' }}
+                />
+              )}
+            </div>
+            
+            <small>Atenção: Evite compartilhar imagens que possam comprometer sua segurança ou de outra pessoa.</small>
+            
+            {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '10px' }}>{error}</p>}
+            
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '15px' }}>
+              
+              <button
+                type="button"
+                className="btn-confirmar"
+                onClick={(e) => handleSubmit(e, false)}
+                disabled={loading}
+              >
+                {loading && !isAnonimo ? 'Enviando...' : 'Confirmar'}
+              </button>
 
-    if (!validarCamposComuns()) return;
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const denuncia = {
-        local: formData.local,
-        dataHora: manifestacoesService.formatarDataHora(formData.dataHora),
-        descricaoDetalhada: formData.descricao,
-        caminhoAnexo: formData.anexo ? formData.anexo.name : null
-      };
-
-      await manifestacoesService.criarDenuncia(denuncia);
-      alert('Denúncia anônima enviada com sucesso!');
-      navigate('/confirmacao');
-    } catch (err) {
-      console.error('Erro ao enviar denúncia anônima:', err);
-      setError('Erro ao enviar denúncia. Tente novamente.');
-      alert('Erro ao enviar denúncia. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return React.createElement(
-    'div',
-    { className: 'denuncia-container' },
-    React.createElement(HeaderSimples, null),
-    React.createElement(SetaVoltar, null),
-    React.createElement(
-      'div',
-      { className: 'denuncia-content' },
-      React.createElement('h2', { className: 'titulo-pagina' }, 'Faça uma denúncia'),
-      React.createElement(
-        'div',
-        { className: 'instrucoes-preenchimento' },
-        React.createElement('p', null, React.createElement('strong', null, '* Campos Obrigatórios')),
-        React.createElement('p', null, '* Tamanho máximo para Anexar arquivo: 5 Megabytes.'),
-        React.createElement('p', null, 'Explique em quais casos a denúncia pode ser feita e reforce a confidencialidade do processo.')
-      ),
-      React.createElement(
-        'div',
-        { className: 'form-box' },
-        React.createElement(
-          'form',
-          { className: 'formulario-denuncia', onSubmit: handleSubmit },
-          React.createElement('label', null, 'Nome (opcional)'),
-          React.createElement('input', {
-            type: 'text',
-            name: 'nome',
-            value: formData.nome,
-            onChange: handleChange,
-            placeholder: 'Nome completo (se logado, já estará preenchido)'
-          }),
-          React.createElement('label', null, 'E-mail ou Telefone *'),
-          React.createElement('input', {
-            type: 'text',
-            name: 'contato',
-            value: formData.contato,
-            onChange: handleChange,
-            placeholder: 'E-mail ou Telefone (obrigatório para envio identificado)',
-            required: true
-          }),
-          React.createElement('label', null, 'Setor de Destino *'),
-          React.createElement('select', {
-            name: 'setor',
-            value: formData.setor,
-            onChange: handleChange,
-            required: true
-          },
-            React.createElement('option', { key: 'geral', value: 'Geral' }, 'Outro / Geral'),
-            React.createElement('option', { key: 'info', value: 'Informatica' }, 'Informática'),
-            React.createElement('option', { key: 'mec', value: 'Mecanica' }, 'Mecânica'),
-            React.createElement('option', { key: 'fac', value: 'Faculdade' }, 'Faculdade')
-          ),
-          React.createElement('label', null, 'Local do incidente *'),
-          React.createElement('input', {
-            type: 'text',
-            name: 'local',
-            value: formData.local,
-            onChange: handleChange,
-            placeholder: 'Ex: Sala B-10, Pátio, Oficina de Mecânica...',
-            required: true
-          }),
-          React.createElement('label', null, 'Data e Hora do incidente *'),
-          React.createElement('input', {
-            type: 'datetime-local',
-            name: 'dataHora',
-            value: formData.dataHora,
-            onChange: handleChange,
-            required: true
-          }),
-          React.createElement('label', null, 'Descrição detalhada da denúncia *'),
-          React.createElement(
-            'div',
-            { className: 'textarea-container' },
-            React.createElement('textarea', {
-              name: 'descricao',
-              value: formData.descricao,
-              onChange: handleChange,
-              rows: 6,
-              placeholder: 'Descreva detalhadamente o ocorrido...',
-              required: true
-            }),
-            React.createElement(
-              'label',
-              { htmlFor: 'file-upload-denuncia', className: 'custom-file-upload' },
-              React.createElement('img', {
-                src: require('../../assets/imagens/icone-anexo.png'),
-                alt: 'Anexar',
-                className: 'icone-anexar'
-              })
-            ),
-            React.createElement('input', {
-              id: 'file-upload-denuncia',
-              type: 'file',
-              onChange: handleFileChange,
-              style: { display: 'none' }
-            }),
-            formData.anexo &&
-              React.createElement(
-                'p',
-                { className: 'arquivo-selecionado' },
-                'Arquivo selecionado: ',
-                formData.anexo.name
-              ),
-            previewUrl &&
-              React.createElement('img', {
-                src: previewUrl,
-                alt: 'Preview do anexo',
-                style: { marginTop: '10px', maxWidth: '100%', maxHeight: '300px', borderRadius: '4px' }
-              })
-          ),
-          React.createElement('small', null, 'Atenção: Evite compartilhar imagens que possam comprometer sua segurança ou de outra pessoa.'),
-          error && React.createElement('p', { style: { color: 'red', textAlign: 'center', marginTop: '10px' } }, error),
-          React.createElement(
-            'div',
-            { style: { display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '15px' } },
-            React.createElement(
-              'button',
-              { type: 'submit', className: 'btn-confirmar', disabled: loading },
-              loading ? 'Enviando...' : 'Confirmar'
-            ),
-            React.createElement(
-              'button',
-              {
-                type: 'button',
-                className: 'btn-confirmar',
-                style: { backgroundColor: '#666' },
-                onClick: handleAnonimoSubmit,
-                disabled: loading
-              },
-              loading ? 'Enviando...' : 'Enviar Anônimo'
-            )
-          )
-        )
-      )
-    ),
-    React.createElement(Footer, null)
+              <button
+                type="button"
+                className="btn-confirmar"
+                style={{ backgroundColor: '#666' }}
+                onClick={(e) => handleSubmit(e, true)}
+                disabled={loading}
+              >
+                {loading && isAnonimo ? 'Enviando...' : 'Enviar Anônimo'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <Footer />
+    </div>
   );
+
 }
 
 export default Denuncia;
