@@ -4,14 +4,18 @@
   display: flex;
   flex-direction: column;
   position: relative;
-   font-family: Arial, sans-serif;
+  font-family: Arial, sans-serif;
 }
 
+/* 🔴 SETA VOLTAR — CORRIGIDA */
 .seta-voltar {
-  width: 25px;
-  height: 25px;
-  margin: 20px 0 0 20px;
+  width: 32px;
+  height: auto;
+  position: absolute;
+  top: 20px;
+  left: 20px;
   cursor: pointer;
+  z-index: 10;
 }
 
 .reclamacao-content {
@@ -24,6 +28,7 @@
 .titulo-pagina {
   font-size: 16px;
   font-weight: 600;
+  margin-top: 60px;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -57,7 +62,8 @@
 }
 
 .formulario-reclamacao input,
-.formulario-reclamacao textarea {
+.formulario-reclamacao textarea,
+.formulario-reclamacao select {
   padding: 10px;
   font-size: 13px;
   border: 1px solid #ccc;
@@ -70,7 +76,7 @@
 .formulario-reclamacao textarea {
   height: 160px;
   padding-right: 35px;
-   font-family: Arial, sans-serif;
+  font-family: Arial, sans-serif;
 }
 
 .formulario-reclamacao small {
@@ -79,7 +85,6 @@
 }
 
 .btn-confirmar {
-  margin-top: 15px;
   background-color: #d30000;
   color: white;
   padding: 8px;
@@ -89,11 +94,18 @@
   cursor: pointer;
   transition: 0.3s;
   width: 120px;
-  align-self: center;
 }
 
 .btn-confirmar:hover {
   background-color: #b00000;
+}
+
+/* 🔧 BOTÕES AFASTADOS */
+.botoes-envio {
+  display: flex;
+  justify-content: center;
+  gap: 25px;  /* Ajuste aqui se quiser mais ou menos espaço */
+  margin-top: 20px;
 }
 
 .textarea-container {
@@ -107,4 +119,17 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
+}
+
+.arquivo-selecionado {
+  font-size: 12px;
+  margin-top: 5px;
+  color: #333;
+}
+
+.erro {
+  color: red;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 10px;
 }
