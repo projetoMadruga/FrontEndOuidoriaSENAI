@@ -6,12 +6,34 @@ import { manifestacoesService } from "../../services/manifestacoesService";
 import "./Funcionario.css"; 
 
 import SenaiLogo from '../../assets/imagens/logosenai.png';
+import seta from '../../assets/imagens/icone-voltar.png'; 
+
+// ⬅️ Função de utilidade para obter o nome de exibição
+const obterNomeExibicao = (usuario) => {
+    if (!usuario) return 'Usuário';
+    
+    // Tenta usar o nome completo armazenado
+    if (usuario.nome && usuario.nome.toString().trim().length > 0) return usuario.nome;
+    
+    // Tenta extrair e formatar a primeira parte do e-mail como fallback
+    if (usuario.email) {
+        const parte = usuario.email.split('@')[0];
+        const nomeFormatado = parte.replace(/[._]/g, ' ') // Substitui pontos e underscores por espaços
+            .split(' ')
+            .filter(Boolean) // Remove strings vazias
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1)) // Capitaliza cada palavra
+            .join(' ');
+        return nomeFormatado || usuario.email; // Retorna o nome formatado ou o e-mail se falhar
+    }
+    return 'Funcionário';
+};
 
 
-const FuncionarioHeader = React.memo(({ navigate, usuarioEmail }) => {
+// ⬅️ Componente FuncionarioHeader atualizado para receber 'usuarioNome'
+const FuncionarioHeader = React.memo(({ navigate, usuarioNome }) => {
     
     const headerTitle = 'Painel do Funcionário';
-    const emailDisplay = usuarioEmail || '@sp.senai.br';
+    const nomeDisplay = usuarioNome || 'Funcionário SENAI'; // Usa o nome recebido
     
     const handleLogout = () => {
         localStorage.removeItem('usuarioLogado');
@@ -24,13 +46,20 @@ const FuncionarioHeader = React.memo(({ navigate, usuarioEmail }) => {
         <div className="funcionario-header-full">
             <div className="funcionario-header-left">
                 <img
+                    src={seta}
+                    alt="Voltar"
+                    className="seta-voltar" 
+                    onClick={() => navigate('/')} 
+                />
+                <img
                     src={SenaiLogo}
                     alt="Logo SENAI"
                     className="senai-logo-img"
                 />
                 <div>
                     <h1>{headerTitle}</h1>
-                    <span>Bem-Vindo(a), {emailDisplay}</span> 
+                    {/* ⬅️ Exibe o nome */}
+                    <span>Bem-Vindo(a), {nomeDisplay}</span> 
                 </div>
             </div>
             <div className="funcionario-header-right">
@@ -44,7 +73,6 @@ const FuncionarioHeader = React.memo(({ navigate, usuarioEmail }) => {
         </div>
     );
 });
-
 
 
 const DetalhesModal = React.memo(({ item, fecharVisualizacao, traduzirTipo, getFuncionarioStatus }) => {
@@ -99,14 +127,11 @@ const DetalhesModal = React.memo(({ item, fecharVisualizacao, traduzirTipo, getF
 });
 
 
-
 function Funcionario() {
     const navigate = useNavigate();
     const [manifestacoes, setManifestacoes] = useState([]);
     const [usuarioLogado, setUsuarioLogado] = useState(null);
     const [itemVisualizando, setItemVisualizando] = useState(null);
-    const [isLoading, setIsLoading] = useState(true); 
-    
     const fecharVisualizacao = useCallback(() => setItemVisualizando(null), []);
 
     const { traduzirTipo, FUNCIONARIO_STATUS_MAP } = useMemo(() => {
@@ -155,7 +180,6 @@ function Funcionario() {
             const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
             
             
-            // Filtra as manifestações criadas por este usuário (funcionário)
             const minhasManifestacoes = manifestacoesBackend.filter(m => 
                 m.emailUsuario && m.emailUsuario.toLowerCase() === usuario.email.toLowerCase()
             );
@@ -189,7 +213,7 @@ function Funcionario() {
         } catch (error) {
             console.error("Erro ao carregar manifestações do backend. Tentando fallback para localStorage:", error);
             
-            // Fallback para localStorage filtrado pelo e-mail do funcionário
+            
             const dados = CrudService.getByEmail(usuario.email) || [];
             
             
@@ -211,7 +235,7 @@ function Funcionario() {
             }
         }
         
-        // 1. Lógica de Autenticação/Redirecionamento
+        
         if (!usuario || !usuario.email) {
             alert("Você precisa estar logado para acessar esta página.");
             navigate("/", { replace: true });
@@ -220,12 +244,14 @@ function Funcionario() {
 
         const emailLower = usuario.email.toLowerCase();
         
-        // 💡 CORREÇÃO: Verifica se o e-mail termina em '@sp.senai.br' (incluindo docentes) E NÃO é de aluno.
+        
         const isFuncionario = (
-            emailLower.endsWith("@sp.senai.br") || // Inclui funcionários gerais
-            emailLower.endsWith("@sp.docente.senai.br") // Inclui docentes (se a regra for essa)
+            emailLower.endsWith("@sp.senai.br") || 
+            emailLower.endsWith("@sp.docente.senai.br") ||
+            emailLower.endsWith("@senai.br") || 
+            emailLower.endsWith("@docente.senai.br") 
         ) &&
-        !emailLower.endsWith("@aluno.senai.br"); // Exclui alunos
+        !emailLower.endsWith("@aluno.senai.br"); 
 
         if (!isFuncionario) {
             alert("Acesso restrito. Esta página é exclusiva para Funcionários.");
@@ -233,10 +259,12 @@ function Funcionario() {
             return;
         }
 
-        // 2. Define o usuário e carrega as manifestações
+        
         setUsuarioLogado(usuario);
-        carregarManifestacoes(usuario)
-            .finally(() => setIsLoading(false)); 
+        
+        (async () => {
+             await carregarManifestacoes(usuario);
+        })();
             
     }, [navigate, carregarManifestacoes]);
 
@@ -295,14 +323,18 @@ function Funcionario() {
         );
     };
 
+    // ⬅️ Obtém o nome para exibição (após setUsuarioLogado)
+    const nomeExibicao = useMemo(() => obterNomeExibicao(usuarioLogado), [usuarioLogado]);
 
-    if (isLoading || !usuarioLogado) {
-        return <div className='funcionario-container'>Carregando painel...</div>;
+
+    if (!usuarioLogado) {
+        return <div className='funcionario-container' />;
     }
 
     return (
         <div className="funcionario-container">
-            <FuncionarioHeader navigate={navigate} usuarioEmail={usuarioLogado.email} />
+            {/* ⬅️ Passa o nome para o Header */}
+            <FuncionarioHeader navigate={navigate} usuarioNome={nomeExibicao} />
             <div className='linha-vermelha' /> 
 
             <div className="funcionario-main-content-wrapper">
