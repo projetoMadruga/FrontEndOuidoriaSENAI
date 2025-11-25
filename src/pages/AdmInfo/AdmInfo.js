@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CrudService from '../../services/CrudService'; // Assumindo que este CrudService é usado para o delete/update local ou simplificado
+import CrudService from '../../services/CrudService';
 import { manifestacoesService } from '../../services/manifestacoesService';
 import Footer from '../../Components/Footer';
 import SenaiLogo from '../../assets/imagens/logosenai.png';
@@ -9,8 +9,7 @@ import './AdmInfo.css';
 
 const { createElement: e } = React;
 
-// --- Mapeamentos e Helpers ---
-
+// 1. ATUALIZAÇÃO DO ADMIN_MAPPING
 const ADMIN_MAPPING = {
     'diretor@senai.br': 'Geral',
     'chile@senai.br': 'Informática',
@@ -18,7 +17,8 @@ const ADMIN_MAPPING = {
     'pino@senai.br': 'Mecânica',
     'pino@docente.senai.br': 'Mecânica',
     'vieira@senai.br': 'Faculdade',
-    'vieira@docente.senai.br': 'Faculdade'
+    'vieira@docente.senai.br': 'Faculdade',
+    'aqvadmin@senai.br': 'Analista de Qualidade de Vida' // Exemplo de novo admin para AQV
 };
 
 const normalizeString = (str) => {
@@ -33,8 +33,6 @@ const NORMALIZED_MAPPING = Object.fromEntries(
     Object.entries(ADMIN_MAPPING).map(([email, area]) => [email, normalizeString(area)])
 );
 
-// Regra de Edição/Exclusão para o admin de Informática: 
-// Pode editar manifestações da 'Informática' ou 'Geral'.
 const canEditManifestacao = (manifestacao, currentAdminArea) => {
     const adminArea = normalizeString(currentAdminArea);
     const manifestacaoArea = normalizeString(manifestacao.setor);
@@ -49,11 +47,15 @@ const canEditManifestacao = (manifestacao, currentAdminArea) => {
         }
     }
     
-    // Regra geral (para Mecânica, Faculdade, etc.)
+    // Adiciona exceção para 'Analista de Qualidade de Vida' se for necessário que ele veja manifestações 'Geral'
+    // if (adminArea === normalizeString('Analista de Qualidade de Vida') && manifestacaoArea === 'geral') {
+    //      return true;
+    // }
+
     return adminArea === manifestacaoArea; 
 };
 
-// --- Componente de Cabeçalho ---
+// ... O componente AdminHeader permanece o mesmo ...
 const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
     
     const welcomeText = adminName 
@@ -94,7 +96,6 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                     e('button', {
                         key: 'usuarios-btn',
                         className: 'btn-usuarios',
-                        // Navega para o painel de usuários de Informática (AdmInfo)
                         onClick: () => navigate('/admin/usuarios-info') 
                     }, 'Usuários'),
                     e('button', {
@@ -112,7 +113,6 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
 };
 
 
-// --- Componente Principal AdmInfo ---
 
 function AdmInfo() {
     const navigate = useNavigate();
@@ -143,7 +143,6 @@ function AdmInfo() {
         
         const userNormalizedArea = NORMALIZED_MAPPING[userEmail];
         
-        // --- 1. Verificação de Acesso ---
         if (!userNormalizedArea) {
             alert('Você precisa estar logado como administrador para acessar esta página.');
             navigate('/');
@@ -156,27 +155,40 @@ function AdmInfo() {
         const areaName = ADMIN_MAPPING[userEmail];
         setCurrentAdminAreaName(areaName);
         
-        // --- 2. Função para formatar área (do backend) para nome do setor (frontend) ---
+        // 2. ATUALIZAÇÃO DA FUNÇÃO formatarArea (MAPEAMENTO DO BACKEND)
         const formatarArea = (area) => {
             const areaMap = {
                 'FACULDADE_SENAI': 'Faculdade',
                 'MECANICA': 'Mecânica',
                 'ADS_REDES': 'Informática',
-                'MANUFATURA_DIGITAL': 'Informática'
+                'MANUFATURA_DIGITAL': 'Manufatura Digital', // Corrigido, estava mapeando para 'Informática'
+                'AQV': 'Analista de Qualidade de Vida', // NOVA ÁREA
+                'ADS': 'Análise e Desenvolvimento de Sistemas', // Adicionado para cobrir o caso 'ADS' puro
+                'REDES': 'Redes de Computadores', // Adicionado para cobrir o caso 'REDES' puro
             };
+            
+            // Lógica para mapear 'ADS' e 'Redes' quando não estão juntos como 'ADS_REDES'
+            if (area === 'ADS' || area === 'REDES') {
+                return areaMap[area] || area || 'Geral';
+            }
+            
+            // Se a área for 'ADS_REDES', mantém 'Informática'
+            if (area === 'ADS_REDES') {
+                return 'Informática';
+            }
+            
+            // Retorna o valor do mapeamento ou o valor original, ou 'Geral'
             return areaMap[area] || area || 'Geral';
         };
             
-        // --- 3. Busca manifestações do backend ---
         const carregarManifestacoes = async () => {
             try {
                 const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
                 
-                // Mapeia as manifestações do backend para o formato esperado pelo frontend
                 const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
                     id: m.id,
                     tipo: manifestacoesService.formatarTipo(m.tipo),
-                    setor: formatarArea(m.area),
+                    setor: formatarArea(m.area), // Usa a função formatarArea atualizada
                     contato: m.emailUsuario || 'Anônimo',
                     dataCriacao: m.dataHora,
                     status: manifestacoesService.formatarStatus(m.status),
@@ -202,7 +214,7 @@ function AdmInfo() {
         return e('div', null, 'Carregando painel...');
     }
 
-    // --- Funções de Manipulação ---
+    // ... O restante das funções de manipulação (excluirManifestacao, gerenciarManifestacao, etc.) permanece o mesmo ...
     
     const excluirManifestacao = async (id) => {
         const manifestacao = manifestacoes.find(m => m.id === id);
@@ -277,6 +289,8 @@ function AdmInfo() {
         
         fecharModal(); 
     };
+    
+    // ... O restante do componente (Filtragem, Métricas e Renderização) permanece o mesmo ...
 
     // --- Filtragem e Métricas ---
     const manifestacoesFiltradas = filtro === 'Todos'

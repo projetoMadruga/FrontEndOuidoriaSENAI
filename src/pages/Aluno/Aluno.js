@@ -66,6 +66,21 @@ const DetalhesModal = ({ item, fecharVisualizacao, traduzirTipo, getAlunoStatus 
     const localIncidente = item.localIncidente || item.local || 'Não especificado'; 
     const dataHora = dataHoraFormatada; 
 
+    const Imagens = item.imagens && item.imagens.length > 0
+        ? React.createElement('div', { className: 'modal-section' }, [
+            React.createElement('strong', null, 'Imagens Anexadas:'),
+            React.createElement('div', { className: 'manifestacao-imagens-container' },
+                item.imagens.map((url, index) => 
+                    React.createElement('img', { 
+                        key: index,
+                        src: url, 
+                        alt: `Imagem Anexada ${index + 1}`,
+                        className: 'manifestacao-imagem-detalhe' 
+                    })
+                )
+            )
+        ])
+        : null;
 
     return React.createElement(
         'div',
@@ -91,6 +106,8 @@ const DetalhesModal = ({ item, fecharVisualizacao, traduzirTipo, getAlunoStatus 
                     React.createElement('strong', null, 'Descrição:'),
                     React.createElement('p', null, item.descricao || 'Descrição não fornecida.')
                 ]),
+                
+                Imagens,
 
                 item.respostaAdmin && React.createElement('div', { className: 'modal-section resposta-admin' }, [
                     React.createElement('strong', null, 'Resposta da Coordenação:'),
@@ -177,7 +194,8 @@ function Aluno() {
                 respostaAdmin: m.observacao || '',
                 localIncidente: m.local,
                 usuarioEmail: m.emailUsuario,
-                contacto: m.emailUsuario
+                contacto: m.emailUsuario,
+                imagens: m.imagens || []
             }));
 
             const manifestacoesDoAluno = manifestacoesFormatadas.filter(m => m.usuarioEmail === email);
@@ -206,7 +224,8 @@ function Aluno() {
                     respostaAdmin: '', 
                     localIncidente: 'Sala de aula',
                     usuarioEmail: email, 
-                    contacto: email 
+                    contacto: email,
+                    imagens: ['https://via.placeholder.com/150/0000FF/808080?text=Foto+1'],
                 }];
                 dados = dadosSimulados;
             }
@@ -269,7 +288,7 @@ function Aluno() {
             finalizadas: counts['Finalizada']
         };
 
-    }, [manifestacoes, ALUNO_STATUS_MAP, getAlunoStatus]); // ⬅️ CORRIGIDO: Adicionada getAlunoStatus
+    }, [manifestacoes, ALUNO_STATUS_MAP, getAlunoStatus]);
 
     const renderManifestacaoCard = (item) => {
         const alunoStatus = getAlunoStatus(item.status);
@@ -295,6 +314,24 @@ function Aluno() {
                 ),
 
                 React.createElement('p', { className: 'manifestacao-problema' }, item.descricao || 'Descrição não fornecida.'),
+
+                item.imagens && item.imagens.length > 0 && React.createElement(
+                    'div',
+                    { className: 'manifestacao-miniaturas' },
+                    [
+                        React.createElement('strong', { style: { display: 'block', marginBottom: '5px' } }, 'Imagens:'),
+                        React.createElement('div', { className: 'manifestacao-imagens-container' },
+                            item.imagens.slice(0, 3).map((url, index) => 
+                                React.createElement('img', { 
+                                    key: index, 
+                                    src: url, 
+                                    alt: `Miniatura ${index + 1}`, 
+                                    className: 'manifestacao-imagem-miniatura' 
+                                })
+                            )
+                        )
+                    ]
+                ),
 
                 item.respostaAdmin && React.createElement(
                     'div',

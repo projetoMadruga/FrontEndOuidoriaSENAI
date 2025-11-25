@@ -215,6 +215,7 @@ function Denuncia() {
               name="local"
               value={formData.local}
               onChange={handleChange}
+              placeholder="Local"
               required
             />
 
@@ -229,9 +230,11 @@ function Denuncia() {
 
             <label>Descrição detalhada *</label>
             <textarea
+             type="text"
               name="descricao"
               value={formData.descricao}
               onChange={handleChange}
+              placeholder="Escreva aqui detalhadamente o ocorrido..."
               rows={6}
               required
             />

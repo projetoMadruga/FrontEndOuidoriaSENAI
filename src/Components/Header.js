@@ -73,24 +73,42 @@ function Header() {
         if (isUserLoggedIn) {
             const usuarioLogadoString = localStorage.getItem('usuarioLogado');
             
-            if (!usuarioLogadoString) return navigate('/'); 
+            if (!usuarioLogadoString) {
+                navigate('/');
+                return;
+            } 
 
             try {
                 const usuarioLogado = JSON.parse(usuarioLogadoString);
-                const email = usuarioLogado.email;
+                const email = usuarioLogado.email ? usuarioLogado.email.toLowerCase() : null;
 
-                if (!email) return navigate('/');
-
+                if (!email) {
+                    navigate('/');
+                    return;
+                }
 
                 if (email === "pino@docente.senai.br" || email === "pino@senai.br") return navigate("/admin/adm-mec");
                 if (email === "chile@docente.senai.br" || email === "chile@senai.br") return navigate("/admin/adm-info");
-                if (email === "diretor@senai.br") return navigate("/admin");
+                if (email === "diretor@docente.senai.br") return navigate("/admin");
                 if (email === "vieira@docente.senai.br" || email === "vieira@senai.br") return navigate("/admin/adm-fac");
                 
                 if (email.endsWith("@aluno.senai.br")) return navigate("/aluno");
-                if (email.endsWith("@senai.br") || email.endsWith("@docente.senai.br")) return navigate("/funcionario");
+
+                const isFuncionario = (
+                    email.endsWith("@sp.senai.br") || 
+                    email.endsWith("@sp.docente.senai.br") ||
+                    email.endsWith("@senai.br") || 
+                    email.endsWith("@docente.senai.br") 
+                ) &&
+                !email.endsWith("@aluno.senai.br"); 
                 
+                if (isFuncionario) return navigate("/funcionario");
+
+                localStorage.removeItem('usuarioLogado');
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('refreshToken');
                 navigate('/');
+
             } catch (error) {
                 console.error("Erro ao fazer parse do usuário logado no clique:", error);
 

@@ -7,11 +7,15 @@
   font-family: Arial, sans-serif;
 }
 
+/* 🔴 SETA VOLTAR — CORRIGIDA */
 .seta-voltar {
-  width: 25px;
-  height: 25px;
-  margin: 20px 0 0 20px;
+  width: 32px;
+  height: auto;
+  position: absolute;
+  top: 20px;
+  left: 20px;
   cursor: pointer;
+  z-index: 10;
 }
 
 .denuncia-content {
@@ -24,6 +28,7 @@
 .titulo-pagina {
   font-size: 16px;
   font-weight: 600;
+  margin-top: 60px;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -57,7 +62,8 @@
 }
 
 .formulario-denuncia input,
-.formulario-denuncia textarea {
+.formulario-denuncia textarea,
+.formulario-denuncia select {
   padding: 10px;
   font-size: 13px;
   border: 1px solid #ccc;
@@ -94,11 +100,12 @@
   background-color: #b00000;
 }
 
-.botoes-centro {
+/* 🔧 BOTÕES AFASTADOS */
+.botoes-envio {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 25px;  /* Ajuste aqui se quiser mais ou menos espaço */
+  margin-top: 20px;
 }
 
 .textarea-container {
@@ -118,4 +125,11 @@
   font-size: 12px;
   margin-top: 5px;
   color: #333;
+}
+
+.erro {
+  color: red;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 10px;
 }
