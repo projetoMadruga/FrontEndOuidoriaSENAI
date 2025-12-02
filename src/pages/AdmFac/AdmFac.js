@@ -12,13 +12,16 @@ const { createElement: e } = React;
 
 
 const ADMIN_MAPPING = {
-    'diretor@senai.br': 'Geral', 
-    'chile@senai.br': 'Informática',
-    'chile@docente.senai.br': 'Informática',
-    'pino@senai.br': 'Mecânica', 
-    'pino@docente.senai.br': 'Mecânica',
-    'vieira@senai.br': 'Faculdade',
-    'vieira@docente.senai.br': 'Faculdade' 
+    'diretor@senai.br': 'Geral',
+    'chile@senai.br': 'Informática',
+    'chile@docente.senai.br': 'Informática',
+    'jsilva@sp.senai.br': 'Informática',
+    'pino@senai.br': 'Mecânica',
+    'pino@docente.senai.br': 'Mecânica',
+    'carlos.pino@sp.senai.br': 'Mecânica',
+    'vieira@senai.br': 'Faculdade',
+    'vieira@docente.senai.br': 'Faculdade',
+    'alexandre.vieira@sp.senai.br': 'Faculdade'
 };
 
 const normalizeString = (str) => {
@@ -162,23 +165,17 @@ function AdmFac() {
         setCurrentAdminAreaName(areaName);
             
       
-        const formatarArea = (area) => {
-            if (!area) return 'Geral';
-            const a = String(area)
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .toUpperCase()
-                .trim();
-
-            if (a.includes('GERAL')) return 'Geral';
-            if (a.includes('FACUL')) return 'Faculdade';
-            if (a.includes('MECAN')) return 'Mecânica';
-            if (a.includes('ADS') || a.includes('REDE') || a.includes('INFORMAT')) return 'Informática';
-            if (a.includes('MANUFATURA')) return 'Informática';
-
-            return area; 
-        };
-        
+        const formatarArea = (area) => {
+            if (!area) return 'Geral';
+            const areaMap = {
+                'FACULDADE_SENAI': 'Faculdade',
+                'MECANICA': 'Mecânica',
+                'ADS_REDES': 'Informática',
+                'MANUFATURA_DIGITAL': 'Informática',
+                'GERAL': 'Geral'
+            };
+            return areaMap[area] || area || 'Geral';
+        };
         const carregarManifestacoes = async () => {
             try {
                 const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
@@ -279,7 +276,7 @@ function AdmFac() {
                 area: manifestacoesService.mapearAreaParaBackend(novoSetor || manifestacaoOriginal.setor),
                 local: manifestacaoOriginal.local,
                 descricaoDetalhada: manifestacaoOriginal.descricao, 
-                status: manifestacoesService.converterStatusParaBackend(novoStatus),
+                status: manifestacoesService.converterStatusParaBackend(novoStatus, manifestacaoOriginal.tipo),
                 observacao: resposta,
                 dataHora: manifestacaoOriginal.dataCriacao
             };
@@ -531,3 +528,7 @@ function AdmFac() {
 }
 
 export default AdmFac;
+
+
+
+

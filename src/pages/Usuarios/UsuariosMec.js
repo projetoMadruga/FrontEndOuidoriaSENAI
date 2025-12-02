@@ -140,7 +140,7 @@ function UsuariosMec() {
     const [modalUsuario, setModalUsuario] = useState(null); 
 
     // Use useMemo para garantir que ADMIN_EMAILS seja estável
-    const ADMIN_EMAILS = useMemo(() => ['pino@senai.br', 'pino@docente.senai.br'], []);
+    const ADMIN_EMAILS = useMemo(() => ['pino@senai.br', 'pino@docente.senai.br', 'carlos.pino@sp.senai.br'], []);
 
     // Função de carregamento e filtragem de usuários usando useCallback
     const carregarUsuarios = useCallback(() => {

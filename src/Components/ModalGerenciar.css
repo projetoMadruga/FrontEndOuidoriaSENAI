@@ -139,6 +139,7 @@
     margin-left: 5px;
 }
 
+/* Status originais */
 .status-label.pendente {
     background-color: #fdf3c7;
     color: #8a6d3b;
@@ -152,4 +153,42 @@
 .status-label.resolvida {
     background-color: #d4edda;
     color: #155724;
+}
+
+/* Novos status */
+.status-label.em-análise,
+.status-label.em-analise {
+    background-color: #c7e5fd;
+    color: #3b8ad7;
+}
+
+.status-label.cancelada {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-label.arquivada,
+.status-label.arquivado {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+.status-label.lido {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-label.aprovada {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-label.rejeitada {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-label.implementada {
+    background-color: #d1ecf1;
+    color: #0c5460;
 }

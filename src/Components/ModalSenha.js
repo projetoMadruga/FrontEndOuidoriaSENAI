@@ -10,6 +10,7 @@ function ModalSenha({ isOpen, onClose }) {
   const [mensagemEnviada, setMensagemEnviada] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mouseDownTarget, setMouseDownTarget] = useState(null);
   // const navigate = useNavigate(); // Linha removida!
 
   useEffect(() => {
@@ -43,9 +44,23 @@ function ModalSenha({ isOpen, onClose }) {
     }
   };
 
+  const handleOverlayMouseDown = (e) => {
+    setMouseDownTarget(e.target);
+  };
+
+  const handleOverlayClick = (e) => {
+    if (e.target === mouseDownTarget && e.target.className === "modal-overlay") {
+      onClose();
+    }
+  };
+
   return React.createElement(
     "div",
-    { className: "modal-overlay", onClick: onClose },
+    { 
+      className: "modal-overlay", 
+      onMouseDown: handleOverlayMouseDown,
+      onClick: handleOverlayClick 
+    },
     React.createElement(
       "div",
       { className: "modal-container", onClick: (e) => e.stopPropagation() },

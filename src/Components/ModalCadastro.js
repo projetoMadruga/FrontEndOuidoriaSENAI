@@ -15,17 +15,24 @@ function ModalCadastro({ isOpen, onClose }) {
   const [curso, setCurso] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mouseDownTarget, setMouseDownTarget] = useState(null);
   const navigate = useNavigate();
 
   if (!isOpen) return null;
 
   const redirecionarPorEmail = (email) => {
-    if (email === "pino@docente.senai.br" || email === "pino@senai.br") return navigate("/admin/adm-mec");
-    if (email === "chile@docente.senai.br" || email === "chile@senai.br") return navigate("/admin/adm-info");
+    // Admins específicos
+    if (email === "pino@docente.senai.br" || email === "pino@senai.br" || email === "carlos.pino@sp.senai.br") return navigate("/admin/adm-mec");
+    if (email === "chile@docente.senai.br" || email === "chile@senai.br" || email === "jsilva@sp.senai.br") return navigate("/admin/adm-info");
     if (email === "diretor@senai.br") return navigate("/admin");
-    if (email === "vieira@docente.senai.br" || email === "vieira@senai.br") return navigate("/admin/adm-fac");
+    if (email === "vieira@docente.senai.br" || email === "vieira@senai.br" || email === "alexandre.vieira@sp.senai.br") return navigate("/admin/adm-fac");
+    
+    // Alunos
     if (email.endsWith("@aluno.senai.br")) return navigate("/aluno");
-    if (email.endsWith("@senai.br") || email.endsWith("@docente.senai.br")) return navigate("/funcionario");
+    
+    // Funcionários (todos os domínios permitidos)
+    if (email.endsWith("@senai.br") || email.endsWith("@docente.senai.br") || email.endsWith("@sp.senai.br") || email.endsWith("@portalsesisp.org.br")) return navigate("/funcionario");
+    
     alert("E-mail não autorizado.");
   };
 
@@ -39,6 +46,14 @@ function ModalCadastro({ isOpen, onClose }) {
       let cargoUsuario = "FUNCIONARIO";
       if (email.endsWith("@aluno.senai.br")) {
         cargoUsuario = "ALUNO";
+      }
+      // Aceita todos os domínios permitidos pelo back-end
+      const dominiosPermitidos = ["@aluno.senai.br", "@docente.senai.br", "@senai.br", "@sp.senai.br", "@portalsesisp.org.br"];
+      const emailValido = dominiosPermitidos.some(dominio => email.endsWith(dominio));
+      if (!emailValido) {
+        setError("E-mail deve ser de um domínio SENAI válido (@aluno.senai.br, @docente.senai.br, @senai.br, @sp.senai.br ou @portalsesisp.org.br)");
+        setLoading(false);
+        return;
       }
 
       // Chama a API de cadastro do back-end
@@ -97,9 +112,23 @@ function ModalCadastro({ isOpen, onClose }) {
     }
   };
 
+  const handleOverlayMouseDown = (e) => {
+    setMouseDownTarget(e.target);
+  };
+
+  const handleOverlayClick = (e) => {
+    if (e.target === mouseDownTarget && e.target.className === "modal-overlay") {
+      onClose();
+    }
+  };
+
   return React.createElement(
     "div",
-    { className: "modal-overlay", onClick: onClose },
+    { 
+      className: "modal-overlay", 
+      onMouseDown: handleOverlayMouseDown,
+      onClick: handleOverlayClick 
+    },
     React.createElement(
       "div",
       { className: "modal-container", onClick: (e) => e.stopPropagation() },
@@ -155,7 +184,7 @@ function ModalCadastro({ isOpen, onClose }) {
           React.createElement("img", { src: boneco, alt: "email" }),
           React.createElement("input", {
             type: "email",
-            placeholder: "E-mail (obrigatório: @senai.br ou @aluno.senai.br)",
+            placeholder: "E-mail institucional SENAI",
             value: email,
             onChange: (e) => setEmail(e.target.value),
             required: true,

@@ -38,6 +38,14 @@ function Denuncia() {
   const [isAnonimo, setIsAnonimo] = useState(false);
 
   useEffect(() => {
+    // Verifica se o usuário está autenticado
+    const token = localStorage.getItem('authToken');
+    if (!token || !usuarioLogado) {
+      alert('Você precisa estar logado para fazer uma denúncia.');
+      navigate('/');
+      return;
+    }
+
     if (usuarioLogado) {
       setFormData(prevState => ({
         ...prevState,
@@ -48,7 +56,7 @@ function Denuncia() {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
-  }, []);
+  }, [navigate, usuarioLogado, previewUrl]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -119,6 +127,14 @@ function Denuncia() {
   const handleSubmit = async (e, isAnonimoSubmission = false) => {
     e.preventDefault();
 
+    // Verifica se está autenticado
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Sua sessão expirou. Por favor, faça login novamente.');
+      navigate('/');
+      return;
+    }
+
     if (!validarCamposComuns()) return;
 
     if (!isAnonimoSubmission && !formData.contato) {
@@ -135,12 +151,20 @@ function Denuncia() {
     setError('');
 
     try {
+      const token = localStorage.getItem('authToken');
+      console.log('=== DEBUG DENÚNCIA ===');
+      console.log('Token existe?', !!token);
+      console.log('Token (primeiros 20 chars):', token ? token.substring(0, 20) + '...' : 'null');
+      console.log('Usuário logado:', usuarioLogado);
+      
       const dadosDenuncia = {
         local: formData.local,
         dataHora: manifestacoesService.formatarDataHora(formData.dataHora),
         descricaoDetalhada: formData.descricao,
         area: manifestacoesService.mapearAreaParaBackend(formData.setor),
       };
+      
+      console.log('Dados da denúncia:', dadosDenuncia);
 
       await manifestacoesService.criarDenuncia(dadosDenuncia);
 
@@ -271,7 +295,6 @@ function Denuncia() {
             {error && <p style={{ color: 'red', textAlign: 'center', marginTop: '10px' }}>{error}</p>}
             
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '15px' }}>
-              
               <button
                 type="button"
                 className="btn-confirmar"

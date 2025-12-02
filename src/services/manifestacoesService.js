@@ -110,28 +110,65 @@ export const manifestacoesService = {
    
     formatarStatus(status) {
         const statusMap = {
+            // Reclamação
             'PENDENTE': 'Pendente',
             'EM_ANDAMENTO': 'Em Andamento',
             'CONCLUIDO': 'Resolvida',
+            'CANCELADA': 'Cancelada',
+            // Denúncia
             'EM_ANALISE': 'Em Análise',
             'RESOLVIDA': 'Resolvida',
-            'FINALIZADA': 'Finalizada',
-            'CANCELADA': 'Cancelada'
+            'ARQUIVADA': 'Arquivada',
+            // Elogio
+            'LIDO': 'Lido',
+            'ARQUIVADO': 'Arquivado',
+            // Sugestão
+            'APROVADA': 'Aprovada',
+            'REJEITADA': 'Rejeitada',
+            'IMPLEMENTADA': 'Implementada'
         };
         return statusMap[status] || status;
     },
 
     
-    converterStatusParaBackend(statusFormatado) {
-        const reverseMap = {
-            'Pendente': 'PENDENTE',
-            'Em Andamento': 'EM_ANDAMENTO',
-            'Resolvida': 'CONCLUIDO',
-            'Em Análise': 'PENDENTE', 
-            'Finalizada': 'CONCLUIDO',
-            'Cancelada': 'CANCELADA'
-        };
-        return reverseMap[statusFormatado] || statusFormatado;
+    converterStatusParaBackend(statusFormatado, tipo) {
+        // Mapeamento específico por tipo de manifestação
+        if (tipo === 'Reclamação') {
+            const reverseMap = {
+                'Pendente': 'PENDENTE',
+                'Em Andamento': 'EM_ANDAMENTO',
+                'Resolvida': 'CONCLUIDO',
+                'Cancelada': 'CANCELADA'
+            };
+            return reverseMap[statusFormatado] || 'PENDENTE';
+        } else if (tipo === 'Denúncia') {
+            const reverseMap = {
+                'Pendente': 'PENDENTE',
+                'Em Análise': 'EM_ANALISE',
+                'Resolvida': 'RESOLVIDA',
+                'Arquivada': 'ARQUIVADA'
+            };
+            return reverseMap[statusFormatado] || 'PENDENTE';
+        } else if (tipo === 'Elogio') {
+            const reverseMap = {
+                'Pendente': 'PENDENTE',
+                'Lido': 'LIDO',
+                'Arquivado': 'ARQUIVADO'
+            };
+            return reverseMap[statusFormatado] || 'PENDENTE';
+        } else if (tipo === 'Sugestão') {
+            const reverseMap = {
+                'Pendente': 'PENDENTE',
+                'Em Análise': 'EM_ANALISE',
+                'Aprovada': 'APROVADA',
+                'Rejeitada': 'REJEITADA',
+                'Implementada': 'IMPLEMENTADA'
+            };
+            return reverseMap[statusFormatado] || 'PENDENTE';
+        }
+        
+        // Fallback genérico
+        return statusFormatado;
     },
 
   
@@ -149,7 +186,10 @@ export const manifestacoesService = {
     mapearAreaParaBackend(setor) {
         const areaMap = {
             'Informatica': 'ADS_REDES',
+            'Informática': 'ADS_REDES',
+            'Manufatura Digital': 'MANUFATURA_DIGITAL',
             'Mecanica': 'MECANICA',
+            'Mecânica': 'MECANICA',
             'Faculdade': 'FACULDADE_SENAI',
             'Geral': 'GERAL'
         };
@@ -182,6 +222,14 @@ export const manifestacoesService = {
 
     async atualizarManifestacao(id, dadosAtualizados) {
         try {
+            console.log('╔════════════════════════════════════════╗');
+            console.log('║  ATUALIZAR MANIFESTAÇÃO - FRONT-END    ║');
+            console.log('╚════════════════════════════════════════╝');
+            console.log('ID enviado:', id);
+            console.log('Tipo do ID:', typeof id);
+            console.log('Dados enviados:', JSON.stringify(dadosAtualizados, null, 2));
+            console.log('URL completa:', buildUrl(`/manifestacoes/${id}`));
+            
             const response = await fetch(buildUrl(`/manifestacoes/${id}`), {
                 method: "PUT",
                 headers: {
@@ -191,14 +239,20 @@ export const manifestacoesService = {
                 body: JSON.stringify(dadosAtualizados)
             });
 
+            console.log('Status da resposta:', response.status);
+            console.log('Status text:', response.statusText);
+
             if (!response.ok) {
                 const errorBody = await response.text();
+                console.error('Erro do servidor:', errorBody);
                 throw new Error(`Erro ${response.status}: ${response.statusText} - ${errorBody}`);
             }
 
-            return await response.json();
+            const resultado = await response.json();
+            console.log('✓ Manifestação atualizada com sucesso!', resultado);
+            return resultado;
         } catch (error) {
-            console.error(`Erro ao atualizar manifestação ${id}:`, error);
+            console.error(`✗ Erro ao atualizar manifestação ${id}:`, error);
             throw error;
         }
     },

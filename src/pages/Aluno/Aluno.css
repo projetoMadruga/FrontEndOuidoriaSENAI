@@ -198,10 +198,55 @@
     white-space: nowrap;
     text-transform: capitalize;
 }
-.manifestacao-status.em-análise {
+/* Status em análise/pendentes */
+.manifestacao-status.pendente {
     background-color: #ffc107;
     color: #333;
 }
+.manifestacao-status.em-análise,
+.manifestacao-status.em-analise {
+    background-color: #ffc107;
+    color: #333;
+}
+.manifestacao-status.em-andamento {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+/* Status finalizados positivos */
+.manifestacao-status.resolvida {
+    background-color: #28a745;
+    color: #fff;
+}
+.manifestacao-status.lido {
+    background-color: #28a745;
+    color: #fff;
+}
+.manifestacao-status.aprovada {
+    background-color: #28a745;
+    color: #fff;
+}
+.manifestacao-status.implementada {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Status finalizados neutros/negativos */
+.manifestacao-status.arquivada,
+.manifestacao-status.arquivado {
+    background-color: #6c757d;
+    color: #fff;
+}
+.manifestacao-status.cancelada {
+    background-color: #dc3545;
+    color: #fff;
+}
+.manifestacao-status.rejeitada {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+/* Fallback para status desconhecidos */
 .manifestacao-status.finalizada {
     background-color: #e9ecef;
     color: #333;

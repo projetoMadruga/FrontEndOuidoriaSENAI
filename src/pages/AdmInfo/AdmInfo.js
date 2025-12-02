@@ -13,10 +13,13 @@ const ADMIN_MAPPING = {
     'diretor@senai.br': 'Geral',
     'chile@senai.br': 'Informática',
     'chile@docente.senai.br': 'Informática',
+    'jsilva@sp.senai.br': 'Informática',
     'pino@senai.br': 'Mecânica',
     'pino@docente.senai.br': 'Mecânica',
+    'carlos.pino@sp.senai.br': 'Mecânica',
     'vieira@senai.br': 'Faculdade',
-    'vieira@docente.senai.br': 'Faculdade'
+    'vieira@docente.senai.br': 'Faculdade',
+    'alexandre.vieira@sp.senai.br': 'Faculdade'
 };
 
 const normalizeString = (str) => {
@@ -32,6 +35,11 @@ const NORMALIZED_MAPPING = Object.fromEntries(
 );
 
 const canEditManifestacao = (manifestacao, currentAdminArea) => {
+    // Verificação de segurança: retorna false se manifestação ou área não existirem
+    if (!manifestacao || !manifestacao.setor || !currentAdminArea) {
+        return false;
+    }
+    
     const adminArea = normalizeString(currentAdminArea);
     const manifestacaoArea = normalizeString(manifestacao.setor);
 
@@ -45,7 +53,7 @@ const canEditManifestacao = (manifestacao, currentAdminArea) => {
         }
     }
     
-    return adminArea === manifestacaoArea; 
+    return adminArea === manifestacaoArea;
 };
 
 const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
@@ -116,6 +124,56 @@ function AdmInfo() {
     const [currentAdminAreaName, setCurrentAdminAreaName] = useState('Carregando...');
     const [currentAdminName, setCurrentAdminName] = useState(null);
 
+    // Função para formatar área do backend para nome do setor
+    const formatarArea = (area) => {
+        if (!area) return 'Não especificada';
+        
+        const areaMap = {
+            'FACULDADE_SENAI': 'Faculdade',
+            'MECANICA': 'Mecânica',
+            'ADS_REDES': 'Informática',
+            'MANUFATURA_DIGITAL': 'Manufatura Digital',
+            'GERAL': 'Geral'
+        };
+        return areaMap[area] || area;
+    };
+
+    // Busca manifestações do backend
+    const carregarManifestacoes = async () => {
+        try {
+            const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
+            
+            console.log('╔════════════════════════════════════════╗');
+            console.log('║  MANIFESTAÇÕES CARREGADAS DO BACKEND   ║');
+            console.log('╚════════════════════════════════════════╝');
+            console.log('Total de manifestações:', manifestacoesBackend.length);
+            console.log('Manifestações:', manifestacoesBackend);
+            
+            // Mapeia as manifestações do backend para o formato esperado pelo frontend
+            const manifestacoesMapeadas = manifestacoesBackend.map(m => {
+                console.log(`Mapeando manifestação ID=${m.id}, tipo=${m.tipo}, area=${m.area}`);
+                return {
+                    id: m.id,
+                    tipo: manifestacoesService.formatarTipo(m.tipo),
+                    setor: formatarArea(m.area),
+                    contato: m.emailUsuario || 'Anônimo',
+                    dataCriacao: m.dataHora,
+                    status: manifestacoesService.formatarStatus(m.status),
+                    descricao: m.descricaoDetalhada,
+                    local: m.local,
+                    respostaAdmin: m.observacao,
+                    dataResposta: m.dataResposta,
+                    caminhoAnexo: m.caminhoAnexo
+                };
+            });
+            
+            console.log('Manifestações mapeadas:', manifestacoesMapeadas);
+            setManifestacoes(manifestacoesMapeadas);
+        } catch (error) {
+            console.error('Erro ao carregar manifestações:', error);
+            alert('Erro ao carregar manifestações. Tente novamente.');
+        }
+    };
 
     useEffect(() => {
         let usuarioLogado = null;
@@ -146,44 +204,6 @@ function AdmInfo() {
         const areaName = ADMIN_MAPPING[userEmail];
         setCurrentAdminAreaName(areaName);
         
-        // Função para formatar área do backend para nome do setor
-        const formatarArea = (area) => {
-            const areaMap = {
-                'FACULDADE_SENAI': 'Faculdade',
-                'MECANICA': 'Mecânica',
-                'ADS_REDES': 'Informática',
-                'MANUFATURA_DIGITAL': 'Informática'
-            };
-            return areaMap[area] || area || 'Geral';
-        };
-            
-        // Busca manifestações do backend
-        const carregarManifestacoes = async () => {
-            try {
-                const manifestacoesBackend = await manifestacoesService.listarManifestacoes();
-                
-                // Mapeia as manifestações do backend para o formato esperado pelo frontend
-                const manifestacoesMapeadas = manifestacoesBackend.map(m => ({
-                    id: m.id,
-                    tipo: manifestacoesService.formatarTipo(m.tipo),
-                    setor: formatarArea(m.area),
-                    contato: m.emailUsuario || 'Anônimo',
-                    dataCriacao: m.dataHora,
-                    status: manifestacoesService.formatarStatus(m.status),
-                    descricao: m.descricaoDetalhada,
-                    local: m.local,
-                    respostaAdmin: m.observacao,
-                    dataResposta: m.dataResposta,
-                    caminhoAnexo: m.caminhoAnexo
-                }));
-                
-                setManifestacoes(manifestacoesMapeadas);
-            } catch (error) {
-                console.error('Erro ao carregar manifestações:', error);
-                alert('Erro ao carregar manifestações. Tente novamente.');
-            }
-        };
-        
         carregarManifestacoes();
 
     }, [navigate]);
@@ -192,7 +212,7 @@ function AdmInfo() {
         return e('div', null, 'Carregando painel...');
     }
 
-    const excluirManifestacao = (id) => {
+    const excluirManifestacao = async (id) => {
         const manifestacao = manifestacoes.find(m => m.id === id);
         
         if (!manifestacao || !canEditManifestacao(manifestacao, currentAdminArea)) {
@@ -201,16 +221,45 @@ function AdmInfo() {
         }
         
         if (window.confirm('Tem certeza que deseja excluir essa manifestação?')) {
-            CrudService.deleteManifestacao(id); 
-            const listaSemExcluida = manifestacoes.filter(m => m.id !== id);
-            setManifestacoes(listaSemExcluida);
+            try {
+                await manifestacoesService.deletarManifestacao(id);
+                
+                // Recarrega as manifestações do backend para garantir dados atualizados
+                await carregarManifestacoes();
+                
+                alert('Manifestação excluída com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir manifestação:', error);
+                alert(`Erro ao excluir manifestação: ${error.message || 'Tente novamente.'}`);
+            }
         }
     };
 
     const gerenciarManifestacao = (id) => {
-        const manifestacao = manifestacoes.find(m => m.id === id);
+        console.log('Gerenciar manifestação - ID:', id, 'Tipo:', typeof id);
+        console.log('Manifestações disponíveis:', manifestacoes.map(m => ({ id: m.id, tipo: m.tipo, setor: m.setor })));
+        
+        // Tenta encontrar com comparação estrita e depois com conversão
+        let manifestacao = manifestacoes.find(m => m.id === id);
+        
+        if (!manifestacao) {
+            // Tenta com conversão de tipo
+            manifestacao = manifestacoes.find(m => String(m.id) === String(id));
+        }
+        
         if (manifestacao) {
+            console.log('╔════════════════════════════════════════╗');
+            console.log('║  MANIFESTAÇÃO SELECIONADA              ║');
+            console.log('╚════════════════════════════════════════╝');
+            console.log('ID:', manifestacao.id);
+            console.log('Tipo:', manifestacao.tipo);
+            console.log('Setor (frontend):', manifestacao.setor);
+            console.log('Status:', manifestacao.status);
+            console.log('Objeto completo:', manifestacao);
             setManifestacaoSelecionada({ ...manifestacao }); 
+        } else {
+            console.error('Manifestação não encontrada com ID:', id);
+            alert('Erro: Manifestação não encontrada. Tente recarregar a página.');
         }
     };
 
@@ -218,8 +267,34 @@ function AdmInfo() {
         setManifestacaoSelecionada(null);
     };
 
-    const salvarRespostaModal = (id, novoStatus, resposta) => {
-        const manifestacaoOriginal = manifestacoes.find(m => m.id === id);
+    const salvarRespostaModal = async (id, novoStatus, resposta) => {
+        console.log('╔════════════════════════════════════════╗');
+        console.log('║  SALVAR RESPOSTA - DEBUG               ║');
+        console.log('╚════════════════════════════════════════╝');
+        console.log('ID recebido:', id);
+        console.log('Tipo do ID:', typeof id);
+        console.log('Novo status:', novoStatus);
+        console.log('Resposta:', resposta);
+        console.log('Manifestações disponíveis:', manifestacoes);
+        
+        // Tenta encontrar com comparação estrita e depois com conversão
+        let manifestacaoOriginal = manifestacoes.find(m => m.id === id);
+        
+        if (!manifestacaoOriginal) {
+            // Tenta com conversão de tipo
+            manifestacaoOriginal = manifestacoes.find(m => String(m.id) === String(id));
+        }
+        
+        console.log('Manifestação encontrada:', manifestacaoOriginal);
+        console.log('ID da manifestação encontrada:', manifestacaoOriginal?.id);
+        console.log('Tipo do ID da manifestação:', typeof manifestacaoOriginal?.id);
+        
+        if (!manifestacaoOriginal) {
+            console.error('ERRO: Manifestação não encontrada no array de manifestações');
+            console.error('IDs disponíveis:', manifestacoes.map(m => m.id));
+            alert('Erro: Manifestação não encontrada.');
+            return;
+        }
         
         if (!canEditManifestacao(manifestacaoOriginal, currentAdminArea)) {
             alert(`Erro: Você não pode editar manifestações que não são da sua área (${currentAdminAreaName}) ou manifestações Gerais.`);
@@ -228,31 +303,35 @@ function AdmInfo() {
 
         try {
             // Prepara os dados para atualização (converte campos do frontend para backend)
+            console.log('╔════════════════════════════════════════╗');
+            console.log('║  CONVERSÃO DE STATUS - DEBUG           ║');
+            console.log('╚════════════════════════════════════════╝');
+            console.log('Status recebido (novoStatus):', novoStatus);
+            console.log('Tipo da manifestação:', manifestacaoOriginal.tipo);
+            
+            const statusConvertido = manifestacoesService.converterStatusParaBackend(novoStatus, manifestacaoOriginal.tipo);
+            console.log('Status convertido para backend:', statusConvertido);
+            
             const dadosAtualizados = {
                 id: manifestacaoOriginal.id,
                 tipo: manifestacaoOriginal.tipo,
-                area: manifestacaoOriginal.setor,
+                area: manifestacoesService.mapearAreaParaBackend(manifestacaoOriginal.setor),
                 local: manifestacaoOriginal.local,
                 descricaoDetalhada: manifestacaoOriginal.descricao,
-                status: manifestacoesService.converterStatusParaBackend(novoStatus),
+                status: statusConvertido,
                 observacao: resposta,
                 dataHora: manifestacaoOriginal.dataCriacao
             };
+            
+            console.log('Dados preparados para atualização:', dadosAtualizados);
         
-            CrudService.updateManifestacao(dadosAtualizados); 
-        
-            const manifestacaoEditada = {
-                ...manifestacaoOriginal,
-                status: novoStatus,
-                respostaAdmin: resposta,
-                dataResposta: new Date().toLocaleDateString('pt-BR')
-            };
-
-            setManifestacoes(prevManifestacoes => {
-                return prevManifestacoes.map(m => 
-                    m.id === manifestacaoEditada.id ? manifestacaoEditada : m
-                );
-            });
+            // Atualiza no backend via API
+            await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
+            
+            // Recarrega as manifestações do backend para garantir dados atualizados
+            await carregarManifestacoes();
+            
+            alert('Manifestação atualizada com sucesso!');
         } catch (error) {
             console.error('Erro ao salvar resposta:', error);
             alert('Erro ao salvar resposta. Tente novamente.');

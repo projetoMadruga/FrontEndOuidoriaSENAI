@@ -144,7 +144,7 @@ function UsuariosInfo() {
             console.error('Erro ao parse do localStorage (usuarioLogado):', e);
         }
 
-        const ADMIN_EMAILS = ['chile@senai.br', 'chile@docente.senai.br'];
+        const ADMIN_EMAILS = ['chile@senai.br', 'chile@docente.senai.br', 'jsilva@sp.senai.br'];
 
         if (!usuario || !ADMIN_EMAILS.includes(usuario.email)) {
             alert('Você precisa estar logado como administrador de informática para acessar esta página.');

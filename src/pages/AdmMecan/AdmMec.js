@@ -13,10 +13,13 @@ const ADMIN_MAPPING = {
     'diretor@senai.br': 'Geral',
     'chile@senai.br': 'Informática',
     'chile@docente.senai.br': 'Informática',
+    'jsilva@sp.senai.br': 'Informática',
     'pino@senai.br': 'Mecânica',
     'pino@docente.senai.br': 'Mecânica',
+    'carlos.pino@sp.senai.br': 'Mecânica',
     'vieira@senai.br': 'Faculdade',
-    'vieira@docente.senai.br': 'Faculdade'
+    'vieira@docente.senai.br': 'Faculdade',
+    'alexandre.vieira@sp.senai.br': 'Faculdade'
 };
 
 const normalizeString = (str) => {
@@ -156,6 +159,7 @@ function AdmMec() {
         
         // Função para formatar área do backend para nome do setor
         const formatarArea = (area) => {
+            if (!area) return 'Geral';
             const areaMap = {
                 'FACULDADE_SENAI': 'Faculdade',
                 'MECANICA': 'Mecânica',
@@ -248,7 +252,7 @@ function AdmMec() {
                 area: manifestacoesService.mapearAreaParaBackend(manifestacaoOriginal.setor),
                 local: manifestacaoOriginal.local,
                 descricaoDetalhada: manifestacaoOriginal.descricao,
-                status: manifestacoesService.converterStatusParaBackend(novoStatus),
+                status: manifestacoesService.converterStatusParaBackend(novoStatus, manifestacaoOriginal.tipo),
                 observacao: resposta,
                 dataHora: manifestacaoOriginal.dataCriacao
             };

@@ -140,7 +140,9 @@ function Aluno() {
     }, []);
 
     const getAlunoStatus = (statusOriginal) => {
-        return ALUNO_STATUS_MAP[statusOriginal] || 'Em Análise';
+        // Retorna o status exatamente como vem do backend (j� formatado pelo manifestacoesService)
+        // N�o simplifica mais para 'Em An�lise' ou 'Finalizada'
+        return statusOriginal || 'Pendente';
     }
 
     const formatarData = (dataIso) => {
@@ -243,16 +245,23 @@ function Aluno() {
     }, [navigate]);
 
     const { total, emAnalise, finalizadas } = useMemo(() => {
-        const counts = { total: 0, 'Em Análise': 0, 'Finalizada': 0 };
+        const counts = { total: 0, emAnalise: 0, finalizadas: 0 };
 
         manifestacoes.forEach(m => {
             counts.total++;
-            const alunoStatus = getAlunoStatus(m.status);
-            if (alunoStatus === 'Em Análise') {
-                counts['Em Análise']++;
-            } else if (alunoStatus === 'Finalizada') {
-                counts['Finalizada']++;
-            }
+            const status = getAlunoStatus(m.status);
+            
+            // Status que indicam que a manifesta��o ainda est� em an�lise
+            const statusEmAnalise = ['Pendente', 'Em An�lise', 'Em Andamento'];
+            
+            // Status que indicam que a manifesta��o foi finalizada
+            const statusFinalizadas = ['Resolvida', 'Arquivada', 'Cancelada', 'Lido', 'Arquivado', 'Aprovada', 'Rejeitada', 'Implementada'];
+            
+            if (statusEmAnalise.includes(status)) {
+                counts.emAnalise++;
+            } else if (statusFinalizadas.includes(status)) {
+                counts.finalizadas++;
+            }
         });
 
         if (manifestacoes.length === 1 && manifestacoes[0].id === '987654321') {
@@ -264,12 +273,12 @@ function Aluno() {
 
 
         return {
-            total: counts.total,
-            emAnalise: counts['Em Análise'],
-            finalizadas: counts['Finalizada']
+            total: counts.total || 0,
+            emAnalise: counts.emAnalise || 0,
+            finalizadas: counts.finalizadas || 0
         };
 
-    }, [manifestacoes, ALUNO_STATUS_MAP, getAlunoStatus]); // ⬅️ CORRIGIDO: Adicionada getAlunoStatus
+    }, [manifestacoes, getAlunoStatus]);
 
     const renderManifestacaoCard = (item) => {
         const alunoStatus = getAlunoStatus(item.status);

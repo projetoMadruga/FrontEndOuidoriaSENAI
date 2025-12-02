@@ -102,7 +102,18 @@ function Admin() {
 
     useEffect(() => {
         let usuarioLogado = null;
-        const ADMIN_EMAIL = 'diretor@senai.br';
+        const ADMIN_EMAILS = [
+            'diretor@senai.br',
+            'chile@senai.br',
+            'chile@docente.senai.br',
+            'jsilva@sp.senai.br',
+            'pino@senai.br',
+            'pino@docente.senai.br',
+            'carlos.pino@sp.senai.br',
+            'vieira@senai.br',
+            'vieira@docente.senai.br',
+            'alexandre.vieira@sp.senai.br'
+        ];
 
         try {
             const stored = localStorage.getItem('usuarioLogado');
@@ -113,8 +124,8 @@ function Admin() {
             console.error('Erro ao fazer parse do localStorage:', error);
         }
 
-        if (!usuarioLogado || usuarioLogado.email !== ADMIN_EMAIL) {
-            alert('Você precisa estar logado como administrador geral para acessar esta página.');
+        if (!usuarioLogado || !ADMIN_EMAILS.includes(usuarioLogado.email)) {
+            alert('Você precisa estar logado como administrador para acessar esta página.');
             navigate('/');
             return;
         }
@@ -204,7 +215,7 @@ function Admin() {
                 area: manifestacaoAtual.setor || 'Geral', 
                 local: manifestacaoAtual.localIncidente,
                 descricaoDetalhada: manifestacaoAtual.descricao,
-                status: manifestacoesService.converterStatusParaBackend(novoStatus),
+                status: manifestacoesService.converterStatusParaBackend(novoStatus, manifestacaoAtual.tipo),
                 observacao: resposta,
                 dataHora: manifestacaoAtual.dataCriacao
             };

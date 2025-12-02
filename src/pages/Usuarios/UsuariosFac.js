@@ -143,7 +143,7 @@ function UsuariosFac() {
             console.error('Erro ao parse do localStorage (usuarioLogado):', e);
         }
 
-        const ADMIN_EMAILS = ['vieira@senai.br', 'vieira@docente.senai.br'];
+        const ADMIN_EMAILS = ['vieira@senai.br', 'vieira@docente.senai.br', 'alexandre.vieira@sp.senai.br'];
 
         if (!usuario || !ADMIN_EMAILS.includes(usuario.email)) {
             alert('Você precisa estar logado como administrador da faculdade para acessar esta página.');
