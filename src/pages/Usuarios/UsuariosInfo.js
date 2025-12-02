@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { manifestacoesService } from '../../services/manifestacoesService';
 import Footer from '../../Components/Footer'; 
 import logoSenai from '../../assets/imagens/logosenai.png'; 
 import './UsuariosInfo.css';
@@ -15,32 +16,18 @@ const normalizeString = (str) => {
 };
 
 const getTipoUsuarioFromEmail = (email) => {
+    if (!email) return "Outro";
     if (email.endsWith("@aluno.senai.br")) return "Aluno";
-    if (email.endsWith("@senai.br")) return "Funcionário"; 
+    if (email.endsWith("@senai.br") || email.endsWith("@docente.senai.br") || email.endsWith("@sp.senai.br")) return "Funcionário"; 
     return "Outro";
 };
 
-const CrudServiceSimulado = {
-    getAllUsers: () => {
-        try {
-            const data = localStorage.getItem('usuarios');
-            if (data) {
-                return JSON.parse(data).map((user, index) => ({
-                    id: user.id || index + 1,
-                    tipo: getTipoUsuarioFromEmail(user.email), 
-                    ...user
-                }));
-            }
-            return [];
-        } catch (e) {
-            console.error("Erro ao carregar usuários do localStorage:", e);
-            return [];
-        }
-    },
-    persistUsers: (users) => {
-        const usersToSave = users.map(({ id, tipo, ...rest }) => rest);
-        localStorage.setItem('usuarios', JSON.stringify(usersToSave));
-    }
+const getCursoFromEmail = (email) => {
+    // Tenta extrair o curso do email se não tiver no cadastro
+    if (!email) return 'N/A';
+    // Exemplo: se o email for algo como ads@aluno.senai.br, retorna ADS
+    const parte = email.split('@')[0];
+    return parte || 'N/A';
 };
 
 const AdminHeader = ({ logo, usuarioNome, navigate, activePage }) => {
@@ -152,19 +139,51 @@ function UsuariosInfo() {
             return;
         }
 
-        const todosUsuarios = CrudServiceSimulado.getAllUsers();
-
-        const usuariosFiltrados = todosUsuarios.filter(u => {
-            
-            const cursoNormalizado = normalizeString(u.curso);
-            const isAreaInfo = cursoNormalizado === 'informatica' || cursoNormalizado === 'ti'; 
-            
-            const isNotAdmin = !ADMIN_EMAILS.includes(u.email);
-
-            return isAreaInfo && isNotAdmin;
-        });
+        // Buscar usuários do backend
+        const carregarUsuarios = async () => {
+            try {
+                const todosUsuarios = await manifestacoesService.listarUsuarios();
+                
+                console.log('╔════════════════════════════════════════╗');
+                console.log('║  USUÁRIOS CARREGADOS DO BACKEND        ║');
+                console.log('╚════════════════════════════════════════╝');
+                console.log('Total de usuários:', todosUsuarios.length);
+                console.log('Usuários:', todosUsuarios);
+                
+                // Mapeia e filtra usuários
+                const usuariosMapeados = todosUsuarios.map(u => ({
+                    id: u.id,
+                    nome: u.nome || 'Nome não informado',
+                    email: u.emailEducacional,
+                    tipo: getTipoUsuarioFromEmail(u.emailEducacional),
+                    curso: u.curso || getCursoFromEmail(u.emailEducacional),
+                    telefone: u.telefone || 'N/A',
+                    cpf: u.cpf || 'N/A',
+                    cargo: u.cargoUsuario || 'N/A'
+                }));
+                
+                // Filtra apenas usuários da área de Informática (exceto admins)
+                const usuariosFiltrados = usuariosMapeados.filter(u => {
+                    const cursoNormalizado = normalizeString(u.curso);
+                    const isAreaInfo = cursoNormalizado.includes('informatica') || 
+                                      cursoNormalizado.includes('ti') || 
+                                      cursoNormalizado.includes('ads') ||
+                                      cursoNormalizado.includes('redes');
+                    
+                    const isNotAdmin = !ADMIN_EMAILS.includes(u.email);
+                    
+                    return isAreaInfo && isNotAdmin;
+                });
+                
+                setUsuarios(usuariosFiltrados);
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                alert('Erro ao carregar usuários. Tente novamente.');
+                setUsuarios([]);
+            }
+        };
         
-        setUsuarios(usuariosFiltrados);
+        carregarUsuarios();
         
     }, [navigate]);
 
@@ -192,17 +211,22 @@ function UsuariosInfo() {
         setModalUsuario(null);
     };
 
-    const excluirUsuario = (usuario) => {
+    const excluirUsuario = async (usuario) => {
         if (window.confirm(`Tem certeza que deseja excluir ${usuario.nome}?`)) {
-            
-            const novosUsuariosInfo = usuarios.filter(u => u.id !== usuario.id);
-            setUsuarios(novosUsuariosInfo);
-            
-            const todosUsuarios = CrudServiceSimulado.getAllUsers();
-            const listaFinal = todosUsuarios.filter(u => u.id !== usuario.id);
-            CrudServiceSimulado.persistUsers(listaFinal);
-
-            console.log(`Usuário ${usuario.nome} excluído!`);
+            try {
+                // TODO: Implementar endpoint de exclusão no backend
+                // await manifestacoesService.deletarUsuario(usuario.id);
+                
+                // Por enquanto, apenas remove da lista local
+                const novosUsuariosInfo = usuarios.filter(u => u.id !== usuario.id);
+                setUsuarios(novosUsuariosInfo);
+                
+                alert(`Usuário ${usuario.nome} excluído com sucesso!`);
+                console.log(`Usuário ${usuario.nome} excluído!`);
+            } catch (error) {
+                console.error('Erro ao excluir usuário:', error);
+                alert('Erro ao excluir usuário. Tente novamente.');
+            }
         }
     };
 

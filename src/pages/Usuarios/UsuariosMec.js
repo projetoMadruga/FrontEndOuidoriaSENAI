@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { manifestacoesService } from '../../services/manifestacoesService';
 import Footer from '../../Components/Footer'; 
 import logoSenai from '../../assets/imagens/logosenai.png'; 
 import './UsuariosMec.css';
@@ -143,7 +144,7 @@ function UsuariosMec() {
     const ADMIN_EMAILS = useMemo(() => ['pino@senai.br', 'pino@docente.senai.br', 'carlos.pino@sp.senai.br'], []);
 
     // Função de carregamento e filtragem de usuários usando useCallback
-    const carregarUsuarios = useCallback(() => {
+    const carregarUsuarios = useCallback(async () => {
         let usuario = null;
         try {
             const stored = localStorage.getItem('usuarioLogado');
@@ -161,20 +162,47 @@ function UsuariosMec() {
             return;
         }
 
-        const todosUsuarios = CrudServiceSimulado.getAllUsers();
-
-        const usuariosFiltrados = todosUsuarios.filter(u => {
+        // Buscar usuários do backend
+        try {
+            const todosUsuarios = await manifestacoesService.listarUsuarios();
             
-            const cursoNormalizado = normalizeString(u.curso);
-            const isAreaMec = cursoNormalizado === 'mecanica'; 
+            console.log('╔════════════════════════════════════════╗');
+            console.log('║  USUÁRIOS CARREGADOS - MECÂNICA        ║');
+            console.log('╚════════════════════════════════════════╝');
+            console.log('Total de usuários:', todosUsuarios.length);
             
-            const isNotAdmin = !ADMIN_EMAILS.includes(u.email);
-
-            return isAreaMec && isNotAdmin;
-        });
-        
-        setUsuarios(usuariosFiltrados);
-    }, [navigate, ADMIN_EMAILS]); // Adicionei navigate e ADMIN_EMAILS como dependências
+            // Mapeia e filtra usuários
+            const usuariosMapeados = todosUsuarios.map(u => ({
+                id: u.id,
+                nome: u.nome || 'Nome não informado',
+                email: u.emailEducacional,
+                tipo: getTipoUsuarioFromEmail(u.emailEducacional),
+                curso: u.curso || u.emailEducacional?.split('@')[0] || 'N/A',
+                telefone: u.telefone || 'N/A',
+                cpf: u.cpf || 'N/A',
+                cargo: u.cargoUsuario || 'N/A'
+            }));
+            
+            // Filtra apenas usuários da área de Mecânica (exceto admins)
+            const usuariosFiltrados = usuariosMapeados.filter(u => {
+                const cursoNormalizado = normalizeString(u.curso);
+                const isAreaMec = cursoNormalizado.includes('mecanica') || 
+                                 cursoNormalizado.includes('mecânica') ||
+                                 cursoNormalizado.includes('mecatronica') ||
+                                 cursoNormalizado.includes('mecatrônica');
+                
+                const isNotAdmin = !ADMIN_EMAILS.includes(u.email);
+                
+                return isAreaMec && isNotAdmin;
+            });
+            
+            setUsuarios(usuariosFiltrados);
+        } catch (error) {
+            console.error('Erro ao carregar usuários:', error);
+            alert('Erro ao carregar usuários. Tente novamente.');
+            setUsuarios([]);
+        }
+    }, [navigate, ADMIN_EMAILS]);
 
     // Chamada inicial
     useEffect(() => {

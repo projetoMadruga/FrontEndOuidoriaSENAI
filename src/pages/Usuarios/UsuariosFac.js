@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { manifestacoesService } from '../../services/manifestacoesService';
 import Footer from '../../Components/Footer'; 
 import logoSenai from '../../assets/imagens/logosenai.png'; 
 import './UsuariosFac.css';
@@ -151,19 +152,50 @@ function UsuariosFac() {
             return;
         }
 
-        const todosUsuarios = CrudServiceSimulado.getAllUsers();
-
-        const usuariosFiltrados = todosUsuarios.filter(u => {
-            
-            const cursoNormalizado = normalizeString(u.curso);
-            const isAreaInfo = cursoNormalizado === 'faculdade' || cursoNormalizado === 'fac'; 
-            
-            const isNotAdmin = !ADMIN_EMAILS.includes(u.email); 
-
-            return isAreaInfo && isNotAdmin;
-        });
+        // Buscar usuários do backend
+        const carregarUsuarios = async () => {
+            try {
+                const todosUsuarios = await manifestacoesService.listarUsuarios();
+                
+                console.log('╔════════════════════════════════════════╗');
+                console.log('║  USUÁRIOS CARREGADOS - FACULDADE       ║');
+                console.log('╚════════════════════════════════════════╝');
+                console.log('Total de usuários:', todosUsuarios.length);
+                
+                // Mapeia e filtra usuários
+                const usuariosMapeados = todosUsuarios.map(u => ({
+                    id: u.id,
+                    nome: u.nome || 'Nome não informado',
+                    email: u.emailEducacional,
+                    tipo: getTipoUsuarioFromEmail(u.emailEducacional),
+                    curso: u.curso || u.emailEducacional?.split('@')[0] || 'N/A',
+                    telefone: u.telefone || 'N/A',
+                    cpf: u.cpf || 'N/A',
+                    cargo: u.cargoUsuario || 'N/A'
+                }));
+                
+                // Filtra apenas usuários da área de Faculdade (exceto admins)
+                const usuariosFiltrados = usuariosMapeados.filter(u => {
+                    const cursoNormalizado = normalizeString(u.curso);
+                    const isAreaFac = cursoNormalizado.includes('faculdade') || 
+                                     cursoNormalizado.includes('fac') ||
+                                     cursoNormalizado.includes('graduacao') ||
+                                     cursoNormalizado.includes('graduação');
+                    
+                    const isNotAdmin = !ADMIN_EMAILS.includes(u.email);
+                    
+                    return isAreaFac && isNotAdmin;
+                });
+                
+                setUsuarios(usuariosFiltrados);
+            } catch (error) {
+                console.error('Erro ao carregar usuários:', error);
+                alert('Erro ao carregar usuários. Tente novamente.');
+                setUsuarios([]);
+            }
+        };
         
-        setUsuarios(usuariosFiltrados);
+        carregarUsuarios();
         
     }, [navigate]);
 
