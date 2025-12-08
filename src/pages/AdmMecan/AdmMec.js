@@ -99,10 +99,6 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 [
                     e('button', { className: 'btn-manifestacoes active' }, 'Manifestações'),
                     e('button', {
-                        className: 'btn-usuarios',
-                        onClick: () => navigate('/admin/usuarios-mec')
-                    }, 'Usuários'),
-                    e('button', {
                         className: 'btn-sair',
                         onClick: () => {
                             localStorage.removeItem('usuarioLogado');
@@ -188,7 +184,13 @@ function AdmMec() {
                     descricao: m.descricaoDetalhada,
                     local: m.local,
                     respostaAdmin: m.observacao,
-                    dataResposta: m.dataResposta,
+                    dataResposta: m.dataResposta ? new Date(m.dataResposta).toLocaleString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : null,
                     caminhoAnexo: m.caminhoAnexo
                 }));
                 
@@ -246,6 +248,7 @@ function AdmMec() {
 
         try {
             // Prepara os dados para atualização (converte campos do frontend para backend)
+            const dataRespostaAtual = new Date().toISOString();
             const dadosAtualizados = {
                 id: manifestacaoOriginal.id,
                 tipo: manifestacaoOriginal.tipo,
@@ -254,7 +257,8 @@ function AdmMec() {
                 descricaoDetalhada: manifestacaoOriginal.descricao,
                 status: manifestacoesService.converterStatusParaBackend(novoStatus, manifestacaoOriginal.tipo),
                 observacao: resposta,
-                dataHora: manifestacaoOriginal.dataCriacao
+                dataHora: manifestacaoOriginal.dataCriacao,
+                dataResposta: dataRespostaAtual
             };
 
             // Atualiza no backend
@@ -264,7 +268,13 @@ function AdmMec() {
                 ...manifestacaoOriginal,
                 status: novoStatus,
                 respostaAdmin: resposta,
-                dataResposta: new Date().toLocaleDateString('pt-BR')
+                dataResposta: new Date().toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
             };
             
             setManifestacoes(prevManifestacoes => {

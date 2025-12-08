@@ -98,11 +98,6 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 [
                     e('button', { key: 'manifestacoes-btn', className: 'btn-manifestacoes active' }, 'Manifestações'),
                     e('button', {
-                        key: 'usuarios-btn',
-                        className: 'btn-usuarios',
-                        onClick: () => navigate('/admin/usuarios-fac')
-                    }, 'Usuários'),
-                    e('button', {
                         key: 'sair-btn',
                         className: 'btn-sair',
                         onClick: () => {
@@ -192,7 +187,7 @@ function AdmFac() {
                     descricao: m.descricaoDetalhada,
                     local: m.local,
                     respostaAdmin: m.observacao,
-                    dataResposta: m.dataResposta,
+                    dataResposta: m.dataResposta ? new Date(m.dataResposta).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : null,
                     caminhoAnexo: m.caminhoAnexo
                 }));
                 
@@ -287,7 +282,7 @@ function AdmFac() {
                 ...manifestacaoOriginal,
                 status: novoStatus,
                 respostaAdmin: resposta,
-                dataResposta: new Date().toLocaleDateString('pt-BR'),
+                dataResposta: new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
                 setor: novoSetor || manifestacaoOriginal.setor
             };
             

@@ -169,7 +169,14 @@ function UsuariosMec() {
             console.log('╔════════════════════════════════════════╗');
             console.log('║  USUÁRIOS CARREGADOS - MECÂNICA        ║');
             console.log('╚════════════════════════════════════════╝');
-            console.log('Total de usuários:', todosUsuarios.length);
+            console.log('Total de usuários:', todosUsuarios?.length || 0);
+            
+            // Verifica se retornou array vazio ou null
+            if (!todosUsuarios || todosUsuarios.length === 0) {
+                console.log('Nenhum usuário encontrado no backend');
+                setUsuarios([]);
+                return;
+            }
             
             // Mapeia e filtra usuários
             const usuariosMapeados = todosUsuarios.map(u => ({
@@ -196,10 +203,11 @@ function UsuariosMec() {
                 return isAreaMec && isNotAdmin;
             });
             
+            console.log('Usuários filtrados (Mecânica):', usuariosFiltrados.length);
             setUsuarios(usuariosFiltrados);
         } catch (error) {
             console.error('Erro ao carregar usuários:', error);
-            alert('Erro ao carregar usuários. Tente novamente.');
+            console.error('Detalhes do erro:', error.message);
             setUsuarios([]);
         }
     }, [navigate, ADMIN_EMAILS]);

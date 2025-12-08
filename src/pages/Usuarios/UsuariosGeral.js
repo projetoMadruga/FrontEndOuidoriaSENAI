@@ -17,7 +17,7 @@ const normalizeString = (str) => {
 
 const getTipoUsuarioFromEmail = (email) => {
     if (email.endsWith("@aluno.senai.br")) return "Aluno";
-    if (email.endsWith("@senai.br")) return "Funcionário"; 
+    if (email.endsWith("@sp.senai.br")) return "Funcionário"; 
     return "Outro";
 };
 

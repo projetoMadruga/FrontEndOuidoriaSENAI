@@ -218,6 +218,7 @@ function Denuncia() {
             name: 'dataHora',
             value: formData.dataHora,
             onChange: handleChange,
+            max: new Date().toISOString().slice(0, 16),
             required: true
           }),
 

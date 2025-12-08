@@ -5,6 +5,7 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .linha-vermelha {
@@ -14,6 +15,25 @@
      margin-top: -3px; 
 }
 
+.btn-voltar-home {
+    position: absolute;
+    top: 15px;
+    left: 40px;
+    background: none;
+    border: none;
+    font-size: 38px;
+    font-weight: 300;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    z-index: 1000;
+    transition: color 0.2s;
+}
+
+.btn-voltar-home:hover {
+    color: #b60000;
+}
 
 .funcionario-header-full {
     background: #fff;
@@ -21,6 +41,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 40px;
+    padding-left: 90px;
     width: 100%;
     box-sizing: border-box;
     border-bottom: 1px solid #e0e0e0;
@@ -33,7 +54,7 @@
 }
 
 .senai-logo-img {
-    height: 15px;
+    height: 35px;
     width: auto;
     object-fit: contain;
 }
@@ -339,20 +360,162 @@
 
 
 
-@media (max-width: 768px) {
-    .funcionario-header-full {
-        padding: 15px 15px;
+/* ========================================
+   RESPONSIVIDADE - MEDIA QUERIES
+   ======================================== */
+
+/* Tablets e telas médias (até 1024px) */
+@media (max-width: 1024px) {
+    .btn-voltar-home {
+        left: 20px;
+        font-size: 34px;
     }
+
+    .funcionario-header-full {
+        padding: 10px 20px;
+        padding-left: 70px;
+    }
+}
+
+/* Tablets pequenos (até 768px) */
+@media (max-width: 768px) {
+    .btn-voltar-home {
+        top: 12px;
+        left: 15px;
+        font-size: 30px;
+    }
+
+    .funcionario-header-full {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+        padding-top: 50px;
+        padding-left: 15px;
+    }
+
+    .funcionario-header-left {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .funcionario-header-left h1 {
+        font-size: 15px;
+    }
+
+    .funcionario-header-left span {
+        font-size: 12px;
+    }
+
+    .funcionario-header-right {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .funcionario-main-content-wrapper {
+        padding: 20px 15px;
+    }
+
     .funcionario-summary-cards {
         flex-direction: column;
         gap: 10px; 
     }
+
     .funcionario-summary-cards .funcionario-card {
         width: 100%; 
         max-width: 100%;
         height: auto;
     }
+
+    .manifestacao-status {
+        position: static;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
     .modal-content {
         max-width: 90%;
+        padding: 20px;
+    }
+}
+
+/* Smartphones (até 480px) */
+@media (max-width: 480px) {
+    .btn-voltar-home {
+        top: 10px;
+        left: 10px;
+        font-size: 26px;
+    }
+
+    .funcionario-header-full {
+        padding: 10px;
+        padding-top: 45px;
+    }
+
+    .senai-logo-img {
+        height: 28px;
+    }
+
+    .funcionario-header-left h1 {
+        font-size: 14px;
+    }
+
+    .funcionario-header-left span {
+        font-size: 11px;
+    }
+
+    .funcionario-main-content-wrapper {
+        padding: 15px 10px;
+    }
+
+    .funcionario-summary-cards .funcionario-card {
+        padding: 15px 20px;
+    }
+
+    .funcionario-summary-cards .funcionario-card h3 {
+        font-size: 28px;
+    }
+
+    .minhas-manifestacoes-card {
+        padding: 15px;
+    }
+
+    .minhas-manifestacoes-card h3 {
+        font-size: 16px;
+    }
+
+    .manifestacao-card-item {
+        padding: 15px;
+    }
+
+    .tipo-e-data {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .modal-content {
+        padding: 20px 15px;
+    }
+
+    .modal-content h3 {
+        font-size: 18px;
+    }
+}
+
+/* Smartphones muito pequenos (até 360px) */
+@media (max-width: 360px) {
+    .btn-voltar-home {
+        font-size: 24px;
+        top: 8px;
+        left: 8px;
+    }
+
+    .funcionario-header-left h1 {
+        font-size: 13px;
+    }
+
+    .funcionario-summary-cards .funcionario-card h3 {
+        font-size: 24px;
     }
 }

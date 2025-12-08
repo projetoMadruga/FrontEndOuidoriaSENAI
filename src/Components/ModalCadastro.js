@@ -9,10 +9,12 @@ import { api } from "../services/api";
 function ModalCadastro({ isOpen, onClose }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState(""); 
-  const [cpf, setCpf] = useState("");     
+  const [cpf, setCpf] = useState("");     
   const [curso, setCurso] = useState("");
+  const [setor, setSetor] = useState(""); // Mantendo o setor, mas será populado por 'curso'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [mouseDownTarget, setMouseDownTarget] = useState(null);
@@ -21,16 +23,13 @@ function ModalCadastro({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const redirecionarPorEmail = (email) => {
-    // Admins específicos
     if (email === "pino@docente.senai.br" || email === "pino@senai.br" || email === "carlos.pino@sp.senai.br") return navigate("/admin/adm-mec");
     if (email === "chile@docente.senai.br" || email === "chile@senai.br" || email === "jsilva@sp.senai.br") return navigate("/admin/adm-info");
     if (email === "diretor@senai.br") return navigate("/admin");
     if (email === "vieira@docente.senai.br" || email === "vieira@senai.br" || email === "alexandre.vieira@sp.senai.br") return navigate("/admin/adm-fac");
     
-    // Alunos
     if (email.endsWith("@aluno.senai.br")) return navigate("/aluno");
     
-    // Funcionários (todos os domínios permitidos)
     if (email.endsWith("@senai.br") || email.endsWith("@docente.senai.br") || email.endsWith("@sp.senai.br") || email.endsWith("@portalsesisp.org.br")) return navigate("/funcionario");
     
     alert("E-mail não autorizado.");
@@ -42,34 +41,48 @@ function ModalCadastro({ isOpen, onClose }) {
     setError("");
 
     try {
-      // Determina o cargo baseado no email
       let cargoUsuario = "FUNCIONARIO";
       if (email.endsWith("@aluno.senai.br")) {
         cargoUsuario = "ALUNO";
       }
-      // Aceita todos os domínios permitidos pelo back-end
-      const dominiosPermitidos = ["@aluno.senai.br", "@docente.senai.br", "@senai.br", "@sp.senai.br", "@portalsesisp.org.br"];
-      const emailValido = dominiosPermitidos.some(dominio => email.endsWith(dominio));
-      if (!emailValido) {
-        setError("E-mail deve ser de um domínio SENAI válido (@aluno.senai.br, @docente.senai.br, @senai.br, @sp.senai.br ou @portalsesisp.org.br)");
+      
+      // Valida apenas se for @aluno.senai.br, outros domínios são permitidos
+      if (email.endsWith("@aluno.senai.br")) {
+        // Email de aluno é válido
+      } else if (!email.includes("@")) {
+        setError("E-mail inválido");
         setLoading(false);
         return;
       }
+      // Qualquer outro email com @ é permitido
 
-      // Chama a API de cadastro do back-end
-      await api.post("/login/cadastrar", {
-        emailEducacional: email,
-        senha: senha,
-        cargoUsuario: cargoUsuario
-      });
+      // Se for funcionário, o valor de 'curso' deve ser salvo em 'setor' para o backend (se ele exigir).
+      // Se for aluno, o valor de 'curso' continua sendo 'curso'.
+      // Aqui, enviamos apenas 'curso', se o backend precisar de 'setor' para FUNCIONARIO, precisamos renomear a variável.
+      
+      const dataToSend = {
+          emailEducacional: email,
+          senha: senha,
+          cargoUsuario: cargoUsuario
+      };
+      
+      // Se o backend exige campo extra, ele é adicionado aqui:
+      if (cargoUsuario === "ALUNO") {
+          dataToSend.curso = curso;
+      } else {
+          // Se o backend aceita 'setor' ou outra coisa para funcionário, ajuste a linha abaixo.
+          // Por enquanto, vou remover qualquer envio extra para o backend para evitar o erro 400.
+          // Se o 400 persistir, precisaremos saber o nome do campo que o backend espera.
+      }
 
-      // Cadastro bem-sucedido - agora faz login automático
+
+      await api.post("/login/cadastrar", dataToSend);
+
       const loginResponse = await api.post("/login/autenticar", {
         emailEducacional: email,
         senha: senha
       });
 
-      // Armazena os tokens JWT
       if (loginResponse.token) {
         localStorage.setItem("authToken", loginResponse.token);
       }
@@ -77,24 +90,27 @@ function ModalCadastro({ isOpen, onClose }) {
         localStorage.setItem("refreshToken", loginResponse.refreshToken);
       }
 
-      // Armazena dados do usuário
-      localStorage.setItem("usuarioLogado", JSON.stringify({ email, nome, curso }));
+      // Salvamos o valor selecionado (curso/setor) em infoAdicional para referência futura
+      localStorage.setItem("usuarioLogado", JSON.stringify({ 
+          email, 
+          nome, 
+          infoAdicional: curso // O campo 'curso' armazena o valor selecionado para ambos
+      }));
 
       alert("Cadastro realizado com sucesso!");
       redirecionarPorEmail(email);
       
-      // Limpa o formulário
       setNome(""); 
       setEmail(""); 
       setSenha(""); 
       setTelefone(""); 
       setCpf(""); 
       setCurso("");
+      setSetor("");
       onClose();
     } catch (err) {
       console.error("Erro no cadastro:", err);
       
-      // Trata diferentes tipos de erro
       if (err.status === 400) {
         try {
           const errorText = await err.text();
@@ -190,36 +206,43 @@ function ModalCadastro({ isOpen, onClose }) {
             required: true,
           })
         ),
-        email.endsWith("@aluno.senai.br") && React.createElement(
+        email.length > 0 && React.createElement(
           "div",
           { className: "input-icon-container" },
-          React.createElement("img", { src: boneco, alt: "curso" }),
+          React.createElement("img", { src: boneco, alt: "curso/setor" }),
           React.createElement("select", {
             value: curso,
             onChange: (e) => setCurso(e.target.value),
-            required: email.endsWith("@aluno.senai.br"),
+            required: true,
             style: { width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }
           }, [
-            React.createElement("option", { key: "default", value: "" }, "Selecione seu curso"),
+            React.createElement("option", { key: "default", value: "" }, email.endsWith("@aluno.senai.br") ? "Selecione seu curso" : "Selecione seu Setor"),
             React.createElement("option", { key: "ads", value: "ADS" }, "Análise e Desenvolvimento de Sistemas"),
             React.createElement("option", { key: "redes", value: "Redes" }, "Redes de Computadores"),
             React.createElement("option", { key: "mecanica", value: "Mecânica" }, "Mecânica"),
             React.createElement("option", { key: "manufatura", value: "Manufatura Digital" }, "Manufatura Digital"),
-            React.createElement("option", { key: "faculdade", value: "Faculdade" }, "Faculdade SENAI")
+            React.createElement("option", { key: "faculdade", value: "Faculdade" }, "Faculdade SENAI"),
+            React.createElement("option", { key: "outros", value: "Outros" }, "Outros Setores"),
           ])
         ),
         React.createElement(
           "div",
-          { className: "input-icon-container" },
+          { className: "input-icon-container password-container" },
           React.createElement("img", { src: cadeado, alt: "senha" }),
           React.createElement("input", {
-            type: "password",
+            type: mostrarSenha ? "text" : "password",
             placeholder: "Senha (mínimo 8 caracteres)",
             value: senha,
             onChange: (e) => setSenha(e.target.value),
             required: true,
             minLength: 8
-          })
+          }),
+          React.createElement("button", {
+            type: "button",
+            className: "toggle-password-btn",
+            onClick: () => setMostrarSenha(!mostrarSenha),
+            "aria-label": mostrarSenha ? "Ocultar senha" : "Mostrar senha"
+          }, "👁️‍🗨️")
         ),
         React.createElement(
           "button",

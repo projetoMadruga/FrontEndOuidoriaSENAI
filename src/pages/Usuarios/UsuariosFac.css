@@ -239,3 +239,232 @@
     width: 100%;
     margin-top: auto; 
 }
+/*
+ ========================================
+   RESPONSIVIDADE - MEDIA QUERIES
+   ======================================== */
+
+/* Tablets e telas médias (até 1024px) */
+@media (max-width: 1024px) {
+    .admin-header-full {
+        padding: 15px 20px;
+        padding-left: 70px;
+    }
+
+    .btn-back-home {
+        left: 20px;
+        font-size: 34px;
+    }
+
+    .admin-main-content-wrapper {
+        padding: 0 20px;
+    }
+
+    .admin-header-left h1 {
+        font-size: 16px;
+    }
+
+    .usuarios-table-card {
+        padding: 20px;
+    }
+}
+
+/* Tablets pequenos (até 768px) */
+@media (max-width: 768px) {
+    .btn-back-home {
+        top: 15px;
+        left: 15px;
+        font-size: 30px;
+    }
+
+    .admin-header-full {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+        padding-top: 50px;
+        padding-left: 15px;
+    }
+
+    .admin-header-left {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .admin-header-left h1 {
+        font-size: 16px;
+    }
+
+    .admin-header-left span {
+        font-size: 11px;
+    }
+
+    .admin-header-right {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .admin-header-right button {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .admin-main-content-wrapper {
+        padding: 0 15px;
+    }
+
+    .usuarios-table-card {
+        padding: 15px;
+    }
+
+    .usuarios-header-content-inner h3 {
+        font-size: 18px;
+    }
+
+    .usuarios-filter-buttons {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .filter-label {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-users {
+        min-width: 600px;
+    }
+
+    .table-users thead th,
+    .table-users tbody td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+
+    .table-actions .btn-gerenciar,
+    .table-actions .btn-excluir {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+}
+
+/* Smartphones (até 480px) */
+@media (max-width: 480px) {
+    .btn-back-home {
+        top: 12px;
+        left: 10px;
+        font-size: 26px;
+    }
+
+    .admin-header-full {
+        padding: 10px;
+        padding-top: 45px;
+    }
+
+    .admin-header-left img {
+        height: 28px;
+    }
+
+    .admin-header-left h1 {
+        font-size: 14px;
+    }
+
+    .admin-header-left span {
+        font-size: 10px;
+    }
+
+    .admin-header-right {
+        gap: 5px;
+    }
+
+    .admin-header-right button {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .linha-vermelha {
+        margin-bottom: 20px;
+    }
+
+    .admin-main-content-wrapper {
+        padding: 0 10px;
+    }
+
+    .usuarios-table-card {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .usuarios-header-content-inner h3 {
+        font-size: 16px;
+    }
+
+    .usuarios-header-content-inner p {
+        font-size: 12px;
+    }
+
+    .usuarios-filter-buttons .btn-filter {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    .table-users {
+        min-width: 500px;
+    }
+
+    .table-users thead th,
+    .table-users tbody td {
+        padding: 6px 8px;
+        font-size: 12px;
+    }
+
+    .table-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .table-actions .btn-gerenciar,
+    .table-actions .btn-excluir {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .empty-row-message {
+        font-size: 13px;
+        padding: 15px;
+    }
+}
+
+/* Smartphones muito pequenos (até 360px) */
+@media (max-width: 360px) {
+    .btn-back-home {
+        font-size: 24px;
+        top: 10px;
+        left: 8px;
+    }
+
+    .admin-header-left h1 {
+        font-size: 13px;
+    }
+
+    .usuarios-header-content-inner h3 {
+        font-size: 15px;
+    }
+
+    .table-users {
+        min-width: 450px;
+    }
+
+    .table-users thead th,
+    .table-users tbody td {
+        padding: 5px 6px;
+        font-size: 11px;
+    }
+}

@@ -1,70 +1,218 @@
-# Getting Started with Create React App
+# 🎓 Ouvidoria SENAI Suíço-Brasileira
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Sistema web de ouvidoria desenvolvido para a Escola SENAI Suíço-Brasileira, permitindo que alunos, funcionários e a comunidade escolar registrem manifestações (denúncias, reclamações, elogios e sugestões) de forma transparente e organizada.
 
-## Available Scripts
+## 📋 Sobre o Projeto
 
-In the project directory, you can run:
+A Ouvidoria SENAI é uma plataforma completa que facilita a comunicação entre a comunidade escolar e a administração, garantindo transparência, imparcialidade e acompanhamento de todas as manifestações registradas.
 
-### `npm start`
+### ✨ Funcionalidades Principais
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+#### Para Usuários
+- 📝 Registro de manifestações (Denúncia, Reclamação, Elogio, Sugestão)
+- 📎 Anexo de imagens e documentos
+- 🔍 Acompanhamento do status das manifestações
+- 🔐 Sistema de autenticação seguro
+- 👁️ Visualização de senha nos formulários
+- 📱 Interface totalmente responsiva
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+#### Para Administradores
+- 📊 Painéis administrativos por área (Geral, Mecânica, Informática, Faculdade)
+- ✅ Gerenciamento de manifestações
+- 💬 Sistema de resposta às manifestações
+- 📈 Métricas e estatísticas em tempo real
+- 🔄 Atualização de status
+- 🗂️ Organização por setor e tipo
 
-### `npm test`
+#### Para Funcionários
+- 📋 Visualização de manifestações próprias
+- 📊 Dashboard com resumo de manifestações
+- 🔔 Acompanhamento de respostas da administração
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🚀 Tecnologias Utilizadas
 
-### `npm run build`
+- **Frontend:** React 18.2.0
+- **Roteamento:** React Router DOM 6.22.3
+- **Estilização:** CSS3 com design responsivo
+- **Autenticação:** Sistema próprio com tokens JWT
+- **Deploy:** Vercel
+- **Versionamento:** Git & GitHub
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 📦 Instalação e Configuração
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Pré-requisitos
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Node.js (versão 14 ou superior)
+- npm ou yarn
+- Git
 
-### `npm run eject`
+### Passo a Passo
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. **Clone o repositório**
+```bash
+git clone https://github.com/seu-usuario/ouvidoria-senai.git
+cd ouvidoria-senai
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. **Instale as dependências**
+```bash
+npm install
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+3. **Configure as variáveis de ambiente**
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Crie um arquivo `.env` na raiz do projeto:
+```env
+REACT_APP_API_BASE=http://localhost:8080
+```
 
-## Learn More
+4. **Inicie o servidor de desenvolvimento**
+```bash
+npm start
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+O aplicativo estará disponível em `http://localhost:3000`
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🏗️ Estrutura do Projeto
 
-### Code Splitting
+```
+ouvidoria-senai/
+├── public/
+│   ├── index.html
+│   └── assets/
+├── src/
+│   ├── Components/
+│   │   ├── Header.js
+│   │   ├── Footer.js
+│   │   ├── Dropdown.js
+│   │   ├── ModalLogin.js
+│   │   ├── ModalCadastro.js
+│   │   ├── ModalGerenciar.js
+│   │   └── BotaoOuvidoria.js
+│   ├── pages/
+│   │   ├── Home/
+│   │   ├── Aluno/
+│   │   ├── Funcionario/
+│   │   ├── Admin/
+│   │   ├── AdmMecan/
+│   │   ├── AdmInfo/
+│   │   ├── AdmFac/
+│   │   ├── Denuncia/
+│   │   ├── Reclamacao/
+│   │   ├── Elogio/
+│   │   └── Sugestao/
+│   ├── services/
+│   │   ├── api.js
+│   │   ├── manifestacoesService.js
+│   │   └── CrudService.js
+│   ├── assets/
+│   │   └── imagens/
+│   ├── App.js
+│   └── index.js
+├── .env
+├── package.json
+└── README.md
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🎨 Funcionalidades Detalhadas
 
-### Analyzing the Bundle Size
+### Sistema de Manifestações
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+#### Tipos de Manifestação
+- **Denúncia:** Para relatar irregularidades ou comportamentos inadequados
+- **Reclamação:** Para expressar insatisfação com serviços ou situações
+- **Elogio:** Para reconhecer boas práticas e atitudes positivas
+- **Sugestão:** Para propor melhorias e novas ideias
 
-### Making a Progressive Web App
+#### Campos Obrigatórios
+- Local do incidente
+- Data e hora (com restrição de datas futuras)
+- Descrição detalhada
+- Setor responsável
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Painéis Administrativos
 
-### Advanced Configuration
+#### Admin Geral
+- Acesso total a todas as manifestações
+- Gerenciamento de todos os setores
+- Métricas globais
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+#### Admin por Área
+- **Mecânica:** Manifestações relacionadas à área de mecânica
+- **Informática:** Manifestações de TI, ADS e Redes
+- **Faculdade:** Manifestações da faculdade SENAI
 
-### Deployment
+### Sistema de Autenticação
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+#### Tipos de Usuário
+- **Aluno:** Email @aluno.senai.br
+- **Funcionário:** Email @senai.br, @docente.senai.br, @sp.senai.br
+- **Administrador:** Emails específicos por área
 
-### `npm run build` fails to minify
+#### Funcionalidades de Segurança
+- Autenticação via JWT
+- Tokens de refresh
+- Validação de domínios de email
+- Proteção de rotas
+- Visualização de senha com ícone de olho
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📱 Responsividade
+
+O sistema é totalmente responsivo e otimizado para:
+- 📱 Smartphones (360px - 480px)
+- 📱 Tablets (768px - 1024px)
+- 💻 Desktops (1024px+)
+
+### Breakpoints Implementados
+- **360px:** Smartphones muito pequenos
+- **480px:** Smartphones
+- **768px:** Tablets pequenos
+- **1024px:** Tablets e telas médias
+
+## 🔒 Segurança
+
+- Validação de dados no frontend e backend
+- Proteção contra injeção de código
+- Sanitização de inputs
+- Autenticação baseada em tokens
+- Validação de domínios de email institucionais
+- Restrição de datas futuras em formulários
+
+## 🚀 Deploy
+
+### Vercel (Recomendado)
+
+1. Conecte seu repositório GitHub ao Vercel
+2. Configure as variáveis de ambiente
+3. O deploy será automático a cada push na branch principal
+
+### Build Manual
+
+```bash
+npm run build
+```
+
+Os arquivos otimizados estarão na pasta `build/`
+
+## 📝 Licença
+
+Este projeto foi desenvolvido como Trabalho de Conclusão de Curso (TCC) para a Escola SENAI Suíço-Brasileira.
+
+## 👥 Autores
+
+Desenvolvido por [@projetoMadruga](https://github.com/projetoMadruga) e alunos do curso de Análise e Desenvolvimento de Sistemas - SENAI Suíço-Brasileira
+- [@igoormaurilio](https://github.com/igoormaurilio)
+- [@AnaaPds](https://github.com/AnaaPds)
+- [@LuisCantieri](https://github.com/LuisCantieri)
+- [@julioperes41](https://github.com/julioperes41)
+- [@Lsdceo](https://github.com/Lsdceo)
+- [@GustavoGomes-dev](https://github.com/GustavoGomes-dev)
+
+
+
+## 📞 Contato
+
+Para dúvidas ou sugestões sobre o projeto, entre em contato através da ouvidoria da escola.
+
+---
+ Se este projeto foi útil para você, considere dar uma estrela no repositório!

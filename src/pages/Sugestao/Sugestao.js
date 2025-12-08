@@ -106,7 +106,7 @@ function Sugestao() {
         dataIncidente.setSeconds(0);
     
         if (dataIncidente > dataAtual) {
-            alert('A data e hora não pode ser no futuro.');
+            alert('A data e hora não podem ser futuras. Por favor, selecione uma data e hora passadas ou atuais.');
             return false;
         }
     }
@@ -227,6 +227,7 @@ function Sugestao() {
               name="dataHora"
               value={formData.dataHora}
               onChange={handleChange}
+              max={new Date().toISOString().slice(0, 16)}
             />
             
             <label htmlFor="descricao-textarea">Descrição detalhada da Sugestão *</label>

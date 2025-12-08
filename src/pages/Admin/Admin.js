@@ -74,11 +74,6 @@ const AdminHeader = ({ navigate, SenaiLogo }) => {
                 [
                     e('button', { key: 'manifestacoes-btn', className: 'btn-manifestacoes active' }, 'Manifestações'),
                     e('button', {
-                        key: 'usuarios-btn',
-                        className: 'btn-usuarios',
-                        onClick: () => navigate('/admin/usuarios-geral')
-                    }, 'Usuários'),
-                    e('button', {
                         key: 'sair-btn',
                         className: 'btn-sair',
                         onClick: () => {
@@ -217,7 +212,8 @@ function Admin() {
                 descricaoDetalhada: manifestacaoAtual.descricao,
                 status: manifestacoesService.converterStatusParaBackend(novoStatus, manifestacaoAtual.tipo),
                 observacao: resposta,
-                dataHora: manifestacaoAtual.dataCriacao
+                dataHora: manifestacaoAtual.dataCriacao,
+                dataResposta: new Date().toISOString()
             };
 
             await manifestacoesService.atualizarManifestacao(id, dadosAtualizados);
@@ -228,7 +224,7 @@ function Admin() {
                         ...m,
                         status: novoStatus,
                         respostaAdmin: resposta,
-                        dataResposta: new Date().toLocaleString('pt-BR')
+                        dataResposta: new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                     };
                 }
                 return m;

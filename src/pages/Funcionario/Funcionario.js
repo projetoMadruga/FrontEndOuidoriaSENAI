@@ -11,15 +11,26 @@ import SenaiLogo from '../../assets/imagens/logosenai.png';
 const FuncionarioHeader = React.memo(({ navigate, usuarioEmail }) => {
     
     const headerTitle = 'Painel do Funcionário';
-    const emailDisplay = usuarioEmail || '@senai.br';
+    const emailDisplay = usuarioEmail || '@sp.senai.br';
     
     const handleLogout = () => {
         localStorage.removeItem('usuarioLogado');
         navigate('/');
     };
 
+    const handleVoltar = () => {
+        navigate('/');
+    };
+
     return (
         <div className="funcionario-header-full">
+            <button 
+                className="btn-voltar-home" 
+                onClick={handleVoltar}
+                title="Voltar para a Home"
+            >
+                ‹
+            </button>
             <div className="funcionario-header-left">
                 <img
                     src={SenaiLogo}
@@ -208,7 +219,7 @@ function Funcionario() {
             return;
         }
 
-        const isFuncionario = usuario.email.toLowerCase().endsWith("@senai.br") &&
+        const isFuncionario = usuario.email.toLowerCase().endsWith("@sp.senai.br") &&
                              !usuario.email.toLowerCase().endsWith("@aluno.senai.br");
 
         if (!isFuncionario) {

@@ -94,11 +94,6 @@ const AdminHeader = ({ navigate, SenaiLogo, adminAreaName, adminName }) => {
                 [
                     e('button', { key: 'manifestacoes-btn', className: 'btn-manifestacoes active' }, 'Manifestações'),
                     e('button', {
-                        key: 'usuarios-btn',
-                        className: 'btn-usuarios',
-                        onClick: () => navigate('/admin/usuarios-info')
-                    }, 'Usuários'),
-                    e('button', {
                         key: 'sair-btn',
                         className: 'btn-sair',
                         onClick: () => {
@@ -162,7 +157,13 @@ function AdmInfo() {
                     descricao: m.descricaoDetalhada,
                     local: m.local,
                     respostaAdmin: m.observacao,
-                    dataResposta: m.dataResposta,
+                    dataResposta: m.dataResposta ? new Date(m.dataResposta).toLocaleString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : null,
                     caminhoAnexo: m.caminhoAnexo
                 };
             });
@@ -320,7 +321,8 @@ function AdmInfo() {
                 descricaoDetalhada: manifestacaoOriginal.descricao,
                 status: statusConvertido,
                 observacao: resposta,
-                dataHora: manifestacaoOriginal.dataCriacao
+                dataHora: manifestacaoOriginal.dataCriacao,
+                dataResposta: new Date().toISOString()
             };
             
             console.log('Dados preparados para atualização:', dadosAtualizados);

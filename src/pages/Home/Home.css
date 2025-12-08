@@ -94,18 +94,20 @@
 }
 
 .botao-horario {
-    display: block;
-    margin: 20px auto;
-    background-color: #ff0000;
-    color: white;
+    background-color: #e30613;
     border: none;
     border-radius: 30px;
-    padding: 14px 30px;
-    font-size: 14px;
-    font-weight: bold;
+    color: #fff;
     cursor: pointer;
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 20px auto;
+    padding: 14px 30px;
     text-transform: uppercase;
-    width: fit-content; 
+    width: -webkit-fit-content;
+    width: fit-content;
+ 
 }
 
 .icone-social {
@@ -120,60 +122,196 @@
 }
 
 
-@media (max-width: 768px) {
-    
+/* ========================================
+   RESPONSIVIDADE - MEDIA QUERIES
+   ======================================== */
+
+/* Tablets e telas médias (até 1024px) */
+@media (max-width: 1024px) {
     .banner-container {
-        height: auto; 
-        margin-top: 20px;
-        width: 100%;
-        max-width: none;
+        width: 95%;
+        height: 400px;
+        margin: 30px auto 0;
     }
-    .banner {
-        height: auto;
-    }
-    .texto-bemvindo {
-        top: 20%; 
-        left: 50%;
-        transform: translate(-50%, -20%);
-        width: 90%;
-        text-align: center;
-    }
+
     .texto-bemvindo h1 {
-        font-size: 1.5em;
+        font-size: 18px;
     }
+
     .texto-bemvindo h2 {
-        font-size: 1em;
-        max-width: 100%;
+        font-size: 24px;
+        max-width: 70%;
+    }
+
+    .conteudo-ouvidoria-principal {
+        width: 95%;
+        gap: 30px;
+    }
+
+    .descricao {
+        font-size: 15px;
+        padding: 18px;
+    }
+}
+
+/* Tablets pequenos (até 768px) */
+@media (max-width: 768px) {
+    .banner-container {
+        height: 300px;
+        margin-top: 20px;
+        width: 95%;
+        border-radius: 6px;
+    }
+
+    .texto-bemvindo {
+        top: 15%;
+        left: 5%;
+    }
+
+    .texto-bemvindo h1 {
+        font-size: 16px;
+    }
+
+    .texto-bemvindo h2 {
+        font-size: 20px;
+        max-width: 80%;
     }
     
     .conteudo-ouvidoria-principal {
         flex-direction: column;
-        padding: 20px 15px;
-        width: 100%;
-        max-width: none;
-        margin: 20px auto;
+        padding: 0;
+        width: 95%;
+        margin: 30px auto;
+        gap: 20px;
     }
     
-    .drop-area, .descricao {
+    .drop-area {
         width: 100%;
-        margin-bottom: 20px;
     }
 
     .descricao {
-        padding: 15px; 
+        width: 100%;
+        font-size: 15px;
+        padding: 18px;
+        text-align: left;
+        box-sizing: border-box;
     }
     
     .botoes-ouvidoria {
-        flex-direction: row; 
-        justify-content: space-around;
-        gap: 10px; 
-        padding: 0 10px;
-        width: 100%;
+        flex-direction: column;
+        gap: 15px;
+        padding: 0 20px;
+        width: 95%;
     }
 
     .botao-horario {
-        width: 80%;
+        width: 100%;
+        max-width: 400px;
+        margin: 10px auto;
+        font-size: 13px;
+        padding: 12px 25px;
+    }
+}
+
+/* Smartphones (até 480px) */
+@media (max-width: 480px) {
+    .banner-container {
+        height: 250px;
+        margin-top: 15px;
+        width: 100%;
+        border-radius: 4px;
+    }
+
+    .banner {
+        border-radius: 4px;
+    }
+
+    .texto-bemvindo {
+        top: 10%;
+        left: 5%;
+        width: 90%;
+    }
+
+    .texto-bemvindo h1 {
+        font-size: 14px;
+        letter-spacing: 0.5px;
+    }
+
+    .texto-bemvindo h2 {
+        font-size: 18px;
+        max-width: 90%;
+    }
+
+    .conteudo-ouvidoria-principal {
+        width: 100%;
         margin: 20px auto;
-        font-size: 0.9em;
+        gap: 15px;
+        padding: 0 10px;
+    }
+
+    .descricao {
+        width: 100%;
+        font-size: 14px;
+        line-height: 1.5;
+        padding: 15px;
+        text-align: left;
+        border-radius: 6px;
+    }
+
+    .botoes-ouvidoria {
+        width: 100%;
+        padding: 0 15px;
+        gap: 12px;
+    }
+
+    .botao-horario {
+        width: 100%;
+        max-width: none;
+        font-size: 12px;
+        padding: 12px 20px;
+        margin: 8px 0;
+    }
+
+    .icone-social {
+        width: 18px;
+        margin: 0 5px;
+    }
+}
+
+/* Smartphones muito pequenos (até 360px) */
+@media (max-width: 360px) {
+    .banner-container {
+        height: 200px;
+        margin-top: 10px;
+    }
+
+    .texto-bemvindo h1 {
+        font-size: 12px;
+    }
+
+    .texto-bemvindo h2 {
+        font-size: 16px;
+        max-width: 95%;
+    }
+
+    .conteudo-ouvidoria-principal {
+        padding: 0 8px;
+        gap: 12px;
+    }
+
+    .descricao {
+        font-size: 13px;
+        padding: 12px;
+        line-height: 1.4;
+    }
+
+    .botao-horario {
+        font-size: 11px;
+        padding: 10px 18px;
+    }
+
+    .icone-social {
+        width: 16px;
+        margin: 0 4px;
     }
 }

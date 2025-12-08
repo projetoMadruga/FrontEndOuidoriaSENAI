@@ -117,7 +117,7 @@ function Denuncia() {
     dataIncidente.setSeconds(0);
     
     if (dataIncidente > dataAtual) {
-      alert('Erro com a data e hora.');
+      alert('A data e hora do incidente não podem ser futuras. Por favor, selecione uma data e hora passadas ou atuais.');
       return false;
     }
     
@@ -247,6 +247,7 @@ function Denuncia() {
               name="dataHora"
               value={formData.dataHora}
               onChange={handleChange}
+              max={new Date().toISOString().slice(0, 16)}
               required
             />
             

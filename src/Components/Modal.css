@@ -244,3 +244,31 @@
     box-shadow: 0 4px 8px rgba(227, 6, 19, 0.3); 
     transform: translateY(-1px); 
 }
+
+/* Estilo para o container de senha com botão de mostrar/ocultar */
+.password-container {
+  position: relative;
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.toggle-password-btn:hover {
+  opacity: 1;
+}
+
+.toggle-password-btn:focus {
+  outline: none;
+}

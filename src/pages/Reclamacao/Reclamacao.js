@@ -125,7 +125,7 @@ function Reclamacao() {
     dataIncidente.setSeconds(0);
 
     if (dataIncidente > dataAtual) {
-        alert('A data e hora do incidente não pode ser no futuro.');
+        alert('A data e hora do incidente não podem ser futuras. Por favor, selecione uma data e hora passadas ou atuais.');
         return false;
     }
 
@@ -277,6 +277,7 @@ function Reclamacao() {
               name="dataHora"
               value={formData.dataHora}
               onChange={handleChange}
+              max={new Date().toISOString().slice(0, 16)}
               required
             />
             

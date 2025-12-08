@@ -332,3 +332,262 @@
     margin: 5px 0;
     font-size: 14px;
 }
+/*
+ ========================================
+   RESPONSIVIDADE - MEDIA QUERIES
+   ======================================== */
+
+/* Tablets e telas médias (até 1024px) */
+@media (max-width: 1024px) {
+    .admin-header-full {
+        padding: 15px 20px;
+    }
+
+    .admin-main-content-wrapper {
+        width: 95%;
+        padding: 20px 0;
+    }
+
+    .summary-cards {
+        flex-wrap: wrap;
+    }
+
+    .summary-cards .card {
+        flex: 1 1 45%;
+        min-width: 200px;
+    }
+}
+
+/* Tablets pequenos (até 768px) */
+@media (max-width: 768px) {
+    .back-icon-container {
+        width: 26px;
+        height: 26px;
+    }
+
+    .back-arrow-icon {
+        font-size: 20px;
+    }
+
+    .admin-header-full {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .admin-header-left {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .admin-header-left h1 {
+        font-size: 16px;
+    }
+
+    .admin-header-left span {
+        font-size: 11px;
+    }
+
+    .admin-header-right {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .admin-header-right button {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .admin-main-content-wrapper {
+        width: 100%;
+        padding: 15px;
+    }
+
+    .summary-cards {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .summary-cards .card {
+        flex: 1 1 100%;
+    }
+
+    .filter-buttons {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .filter-buttons button {
+        flex: 1 1 auto;
+        min-width: 100px;
+    }
+
+    .admin-table-container {
+        padding: 15px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .manifestacoes-table {
+        min-width: 700px;
+    }
+
+    .manifestacoes-table th,
+    .manifestacoes-table td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+
+    .acoes-coluna {
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .btn-gerenciar,
+    .btn-excluir,
+    .btn-visualizar-only {
+        width: 100%;
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+}
+
+/* Smartphones (até 480px) */
+@media (max-width: 480px) {
+    .back-icon-container {
+        width: 24px;
+        height: 24px;
+    }
+
+    .back-arrow-icon {
+        font-size: 18px;
+    }
+
+    .admin-header-full {
+        padding: 10px;
+    }
+
+    .admin-header-left img {
+        height: 28px;
+    }
+
+    .admin-header-left h1 {
+        font-size: 14px;
+    }
+
+    .admin-header-left span {
+        font-size: 10px;
+    }
+
+    .admin-header-right {
+        gap: 5px;
+    }
+
+    .admin-header-right button {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .linha-vermelha {
+        margin-bottom: 15px;
+    }
+
+    .admin-main-content-wrapper {
+        padding: 10px;
+    }
+
+    .summary-cards .card {
+        padding: 15px;
+    }
+
+    .summary-cards .card p {
+        font-size: 13px;
+    }
+
+    .summary-cards .card h3 {
+        font-size: 22px;
+    }
+
+    .manifestacoes-title h3 {
+        font-size: 16px;
+    }
+
+    .manifestacoes-title small {
+        font-size: 12px;
+    }
+
+    .filter-buttons button {
+        padding: 6px 12px;
+        font-size: 12px;
+        min-width: 80px;
+    }
+
+    .admin-table-container {
+        padding: 12px;
+    }
+
+    .manifestacoes-table {
+        min-width: 600px;
+    }
+
+    .manifestacoes-table th,
+    .manifestacoes-table td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+
+    .status-label.pendente,
+    .status-label.resolvida {
+        padding: 3px 8px;
+        font-size: 11px;
+    }
+
+    .empty-table-message {
+        font-size: 14px;
+        padding: 30px 15px;
+    }
+
+    .footer-container {
+        padding: 20px 0;
+    }
+
+    .footer-container > div {
+        padding: 0 15px;
+    }
+
+    .footer-container p {
+        font-size: 13px;
+    }
+}
+
+/* Smartphones muito pequenos (até 360px) */
+@media (max-width: 360px) {
+    .back-icon-container {
+        width: 22px;
+        height: 22px;
+    }
+
+    .back-arrow-icon {
+        font-size: 16px;
+    }
+
+    .admin-header-left h1 {
+        font-size: 13px;
+    }
+
+    .summary-cards .card h3 {
+        font-size: 20px;
+    }
+
+    .manifestacoes-table {
+        min-width: 500px;
+    }
+
+    .manifestacoes-table th,
+    .manifestacoes-table td {
+        padding: 6px 4px;
+        font-size: 11px;
+    }
+}
